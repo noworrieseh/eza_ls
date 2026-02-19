@@ -182,7 +182,7 @@ run_coverage "--indicator-style=classify" "--classify" "--indicator-style=classi
 echo
 echo "--- Debug --eza flag ---"
 output=$($BIN --eza -l /usr/local/bin 2>&1)
-if [[ "$output" == "eza --long /usr/local/bin" ]]; then
+if [[ "$output" == "eza --long /usr/local/bin --bytes" ]]; then
     echo "✓ PASS: --eza prints command"
     ((TESTS_PASSED++))
 else
@@ -192,7 +192,7 @@ else
 fi
 
 output=$($BIN --eza -lS /usr/local/bin 2>&1)
-if [[ "$output" == "eza --long /usr/local/bin --sort=size --reverse" ]]; then
+if [[ "$output" == "eza --long /usr/local/bin --sort=size --reverse --bytes" ]]; then
     echo "✓ PASS: --eza with -lS"
     ((TESTS_PASSED++))
 else
@@ -203,17 +203,27 @@ fi
 
 echo
 echo "--- Argument-consuming flags (no stdin) ---"
-output=$($BIN --eza -b K /usr/local/bin 2>&1)
-if [[ "$output" == "eza --binary /usr/local/bin" ]]; then
-    echo "✓ PASS: -b K works (no stdin)"
+output=$($BIN --eza -b /usr/local/bin 2>&1)
+if [[ "$output" == "eza /usr/local/bin --bytes" ]]; then
+    echo "✓ PASS: -b (escape) works - no stdin read"
     ((TESTS_PASSED++))
 else
-    echo "✗ FAIL: -b K should not read from stdin"
+    echo "✗ FAIL: -b should not read from stdin"
+    ((TESTS_FAILED++))
+fi
+
+output=$($BIN --eza --block-size=K /usr/local/bin 2>&1)
+if [[ "$output" == "eza --binary /usr/local/bin --bytes" ]]; then
+    echo "✓ PASS: --block-size=K adds --binary"
+    ((TESTS_PASSED++))
+else
+    echo "✗ FAIL: --block-size=K should add --binary"
+    echo "  Got: $output"
     ((TESTS_FAILED++))
 fi
 
 output=$($BIN --eza -I "*.log" /usr/local/bin 2>&1)
-if [[ "$output" == "eza --ignore-glob=*.log /usr/local/bin" ]]; then
+if [[ "$output" == "eza --ignore-glob=*.log /usr/local/bin --bytes" ]]; then
     echo "✓ PASS: -I *.log works (no stdin)"
     ((TESTS_PASSED++))
 else
@@ -222,7 +232,7 @@ else
 fi
 
 output=$($BIN --eza -w 80 /usr/local/bin 2>&1)
-if [[ "$output" == "eza --width=80 /usr/local/bin" ]]; then
+if [[ "$output" == "eza --width=80 /usr/local/bin --bytes" ]]; then
     echo "✓ PASS: -w 80 works (no stdin)"
     ((TESTS_PASSED++))
 else
@@ -230,10 +240,20 @@ else
     ((TESTS_FAILED++))
 fi
 
+output=$($BIN --eza -lh /usr/local/bin 2>&1)
+if [[ "$output" == "eza --long /usr/local/bin" ]]; then
+    echo "✓ PASS: -h disables --bytes"
+    ((TESTS_PASSED++))
+else
+    echo "✗ FAIL: -h should disable --bytes"
+    echo "  Got: $output"
+    ((TESTS_FAILED++))
+fi
+
 echo
 echo "--- No directory argument (defaults to .) ---"
 output=$($BIN --eza -l 2>&1)
-if [[ "$output" == "eza --long ." ]]; then
+if [[ "$output" == "eza --long . --bytes" ]]; then
     echo "✓ PASS: no dir defaults to ."
     ((TESTS_PASSED++))
 else
@@ -243,7 +263,7 @@ else
 fi
 
 output=$($BIN --eza -lt 2>&1)
-if [[ "$output" == "eza --long --sort=modified ." ]]; then
+if [[ "$output" == "eza --long --sort=modified . --bytes" ]]; then
     echo "✓ PASS: -lt no dir defaults to ."
     ((TESTS_PASSED++))
 else
@@ -256,7 +276,7 @@ echo
 echo "--- Edge cases ---"
 
 output=$($BIN --eza -- /tmp 2>&1)
-if [[ "$output" == "eza -- /tmp" ]]; then
+if [[ "$output" == "eza -- /tmp --bytes" ]]; then
     echo "✓ PASS: -- separator passes through"
     ((TESTS_PASSED++))
 else
@@ -266,7 +286,7 @@ else
 fi
 
 output=$($BIN --eza -l -- /tmp 2>&1)
-if [[ "$output" == "eza --long -- /tmp" ]]; then
+if [[ "$output" == "eza --long -- /tmp --bytes" ]]; then
     echo "✓ PASS: -- after flags"
     ((TESTS_PASSED++))
 else

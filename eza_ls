@@ -1,0 +1,324 @@
+#!/bin/bash
+# eza_ls - A wrapper script that makes eza behave like ls
+
+args=("$@")
+eza_args=()
+file_args=()
+has_reverse=0
+has_size_sort=0
+print_only=0
+arg_index=0
+
+scan_arg() {
+    local arg="$1"
+    case "$arg" in
+        -r|--reverse)
+            has_reverse=1
+            ;;
+        -S)
+            has_size_sort=1
+            ;;
+        --eza)
+            print_only=1
+            ;;
+        -b|-I|-w)
+            ((arg_index++))
+            ;;
+    esac
+}
+
+arg_index=0
+while [[ $arg_index -lt ${#args[@]} ]]; do
+    arg="${args[$arg_index]}"
+    
+    if [[ "$arg" == "--" ]]; then
+        ((arg_index++))
+        continue
+    fi
+    
+    if [[ "$arg" == -* && "${#arg}" -gt 2 && "$arg" != "--"* ]]; then
+        prefix="${arg:0:2}"
+        rest="${arg:2}"
+        scan_arg "$prefix"
+        for ((i=0; i<${#rest}; i++)); do
+            scan_arg "-${rest:$i:1}"
+        done
+    else
+        scan_arg "$arg"
+    fi
+    
+    ((arg_index++))
+done
+
+process_arg() {
+    local arg="$1"
+    local consume_next="${2:-0}"
+    
+    if [[ $consume_next -eq 1 ]]; then
+        ((arg_index++))
+        local next_arg="${args[$arg_index]}"
+        case "$arg" in
+            -b|--block-size)
+                case "$next_arg" in
+                    K) eza_args+=("--binary") ;;
+                    B) eza_args+=("--bytes") ;;
+                    *) eza_args+=("--binary") ;;
+                esac
+                return
+                ;;
+            -I|--ignore)
+                eza_args+=("--ignore-glob=$next_arg")
+                return
+                ;;
+            -w|--width)
+                eza_args+=("--width=$next_arg")
+                return
+                ;;
+        esac
+    fi
+    
+    case "$arg" in
+        -1)
+            eza_args+=("--oneline")
+            ;;
+        -a|--all)
+            eza_args+=("--all" "--all")
+            ;;
+        -A)
+            eza_args+=("--almost-all")
+            ;;
+        -b|--block-size)
+            if [[ "$arg" == *=* ]]; then
+                size="${arg#*=}"
+                case "$size" in
+                    K) eza_args+=("--binary") ;;
+                    B) eza_args+=("--bytes") ;;
+                    *) eza_args+=("--binary") ;;
+                esac
+            else
+                process_arg "$arg" 1
+            fi
+            ;;
+        -B)
+            eza_args+=("--bytes")
+            ;;
+        -c)
+            eza_args+=("--time=changed" "--time-style=long-iso")
+            ;;
+        -C)
+            eza_args+=("--grid")
+            ;;
+        -d|--directory)
+            eza_args+=("--treat-dirs-as-files")
+            ;;
+        -D)
+            eza_args+=("--dereference")
+            ;;
+        -f)
+            eza_args+=("--only-files")
+            ;;
+        -F|--classify)
+            if [[ "$arg" == *=* ]]; then
+                eza_args+=("--classify=${arg#*=}")
+            else
+                eza_args+=("--classify=auto")
+            fi
+            ;;
+        -g)
+            eza_args+=("--group")
+            ;;
+        -G|--no-group)
+            ;;
+        -h|--human-readable)
+            ;;
+        -H)
+            eza_args+=("--links")
+            ;;
+        -i|--inode)
+            eza_args+=("--inode")
+            ;;
+        -I|--ignore)
+            if [[ "$arg" == *=* ]]; then
+                eza_args+=("--ignore-glob=${arg#*=}")
+            else
+                process_arg "$arg" 1
+            fi
+            ;;
+        -k)
+            eza_args+=("--binary")
+            ;;
+        -l)
+            eza_args+=("--long")
+            ;;
+        -L|--dereference)
+            eza_args+=("--dereference")
+            ;;
+        -m)
+            eza_args+=("--modified")
+            ;;
+        -n|--numeric-uid-gid)
+            eza_args+=("--numeric")
+            ;;
+        -o)
+            eza_args+=("--octal-permissions")
+            ;;
+        -p)
+            eza_args+=("--classify=auto")
+            ;;
+        -q|--hide-control-chars)
+            ;;
+        -r|--reverse)
+            ;;
+        -R|--recursive)
+            eza_args+=("--recurse")
+            ;;
+        -s|--size)
+            eza_args+=("--blocksize")
+            ;;
+        -S)
+            ;;
+        -t)
+            eza_args+=("--sort=modified")
+            ;;
+        -T|--tab-size=*)
+            ;;
+        -u)
+            eza_args+=("--accessed")
+            ;;
+        -U)
+            eza_args+=("--created")
+            ;;
+        -v|--version)
+            eza_args+=("--version")
+            ;;
+        -w|--width)
+            if [[ "$arg" == *=* ]]; then
+                eza_args+=("--width=${arg#*=}")
+            else
+                process_arg "$arg" 1
+            fi
+            ;;
+        -x)
+            eza_args+=("--across")
+            ;;
+        -X|--sort=extension)
+            eza_args+=("--sort=extension")
+            ;;
+        -Z|--context)
+            eza_args+=("--context")
+            ;;
+        --color=*)
+            color="${arg#*=}"
+            case "$color" in
+                always) eza_args+=("--colour=always") ;;
+                auto) eza_args+=("--colour=auto") ;;
+                never) eza_args+=("--colour=never") ;;
+            esac
+            ;;
+        --dereference)
+            eza_args+=("--dereference")
+            ;;
+        --group-directories-first)
+            eza_args+=("--group-directories-first")
+            ;;
+        --group-directories-last)
+            eza_args+=("--group-directories-last")
+            ;;
+        --hide=*)
+            eza_args+=("--ignore-glob=${arg#*=}")
+            ;;
+        --indicator-style=*)
+            style="${arg#*=}"
+            case "$style" in
+                none) ;;
+                file-type) eza_args+=("--classify=never") ;;
+                classify) eza_args+=("--classify=always") ;;
+                slash) eza_args+=("--classify=auto") ;;
+            esac
+            ;;
+        --quoting-style=*)
+            ;;
+        --show-all)
+            eza_args+=("--all")
+            ;;
+        --sort=*)
+            sort_field="${arg#*=}"
+            case "$sort_field" in
+                none) eza_args+=("--sort=none") ;;
+                time) eza_args+=("--sort=modified") ;;
+                size) eza_args+=("--sort=size") ;;
+                extension) eza_args+=("--sort=extension") ;;
+                version) eza_args+=("--sort=name") ;;
+                *) eza_args+=("--sort=$sort_field") ;;
+            esac
+            ;;
+        --time=*)
+            time_field="${arg#*=}"
+            case "$time_field" in
+                atime|access|use|accessed) eza_args+=("--accessed") ;;
+                ctime|status|changed) eza_args+=("--changed") ;;
+                birth|creation|created) eza_args+=("--created") ;;
+                *) eza_args+=("--time=$time_field") ;;
+            esac
+            ;;
+        --time-style=*)
+            style="${arg#*=}"
+            case "$style" in
+                full-iso) eza_args+=("--time-style=full-iso") ;;
+                long-iso) eza_args+=("--time-style=long-iso") ;;
+                iso) eza_args+=("--time-style=iso") ;;
+                +*) eza_args+=("--time-style=$style") ;;
+                *) eza_args+=("--time-style=$style") ;;
+            esac
+            ;;
+        --eza)
+            print_only=1
+            ;;
+        --)
+            ;;
+        -*)
+            ;;
+        *)
+            eza_args+=("$arg")
+            ;;
+    esac
+}
+
+arg_index=0
+while [[ $arg_index -lt ${#args[@]} ]]; do
+    arg="${args[$arg_index]}"
+    
+    if [[ "$arg" == "--" ]]; then
+        ((arg_index++))
+        continue
+    fi
+    
+    if [[ "$arg" == -* && "${#arg}" -gt 2 && "$arg" != "--"* ]]; then
+        prefix="${arg:0:2}"
+        rest="${arg:2}"
+        process_arg "$prefix"
+        for ((i=0; i<${#rest}; i++)); do
+            process_arg "-${rest:$i:1}"
+        done
+    else
+        process_arg "$arg"
+    fi
+    
+    ((arg_index++))
+done
+
+if [[ $has_size_sort -eq 1 ]]; then
+    eza_args+=("--sort=size")
+fi
+if [[ $has_reverse -eq 1 && $has_size_sort -eq 0 ]]; then
+    eza_args+=("--reverse")
+fi
+if [[ $has_size_sort -eq 1 && $has_reverse -eq 0 ]]; then
+    eza_args+=("--reverse")
+fi
+
+if [[ $print_only -eq 1 ]]; then
+    echo "eza ${eza_args[*]}"
+else
+    exec eza "${eza_args[@]}"
+fi

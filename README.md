@@ -1,6 +1,8 @@
 # eza_ls
 
-A bash wrapper script that makes [eza](https://github.com/eza-community/eza) behave as a drop-in replacement for `ls` command.  alias ls='eza_ls'
+A bash wrapper script that makes [eza](https://github.com/eza-community/eza) behave as a drop-in replacement for `ls` command.  
+
+alias ls='eza_ls'
 
 ## Why?
 

@@ -6,14 +6,16 @@ TESTS_PASSED=0
 TESTS_FAILED=0
 TEST_DIR="/usr/local/bin"
 
+BIN=./eza_ls
+
 run_test() {
     local flags1="$1"
     local flags2="$2"
     local test_name="$3"
-    
-    output1=$(./eza_ls $flags1 "$TEST_DIR" 2>&1 | head -20)
-    output2=$(./eza_ls $flags2 "$TEST_DIR" 2>&1 | head -20)
-    
+
+    output1=$($BIN $flags1 "$TEST_DIR" 2>&1 | head -20)
+    output2=$($BIN $flags2 "$TEST_DIR" 2>&1 | head -20)
+
     if [[ "$output1" == "$output2" ]]; then
         echo "✓ PASS: $test_name"
         ((TESTS_PASSED++))
@@ -29,9 +31,9 @@ run_coverage() {
     local flag="$1"
     local expected_arg="$2"
     local test_name="$3"
-    
-    output=$(bash -x ./eza_ls $flag "$TEST_DIR" 2>&1 | grep "exec eza")
-    
+
+    output=$(bash -x $BIN $flag "$TEST_DIR" 2>&1 | grep "exec eza")
+
     if [[ "$output" == *"$expected_arg"* ]]; then
         echo "✓ PASS: $test_name"
         ((TESTS_PASSED++))
@@ -91,8 +93,8 @@ run_test "-lSrS" "-lS -rS" "double S and r"
 
 echo
 echo "--- Verify -S adds reverse (largest first) ---"
-output1=$(./eza_ls -lS "$TEST_DIR" 2>&1 | head -1)
-output2=$(./eza_ls -lSr "$TEST_DIR" 2>&1 | head -1)
+output1=$($BIN -lS "$TEST_DIR" 2>&1 | head -1)
+output2=$($BIN -lSr "$TEST_DIR" 2>&1 | head -1)
 if [[ "$output1" != "$output2" ]]; then
     echo "✓ PASS: -lS different from -lSr"
     ((TESTS_PASSED++))
@@ -179,7 +181,7 @@ run_coverage "--indicator-style=classify" "--classify" "--indicator-style=classi
 
 echo
 echo "--- Debug --eza flag ---"
-output=$(./eza_ls --eza -l /usr/local/bin 2>&1)
+output=$($BIN --eza -l /usr/local/bin 2>&1)
 if [[ "$output" == "eza --long /usr/local/bin" ]]; then
     echo "✓ PASS: --eza prints command"
     ((TESTS_PASSED++))
@@ -189,7 +191,7 @@ else
     ((TESTS_FAILED++))
 fi
 
-output=$(./eza_ls --eza -lS /usr/local/bin 2>&1)
+output=$($BIN --eza -lS /usr/local/bin 2>&1)
 if [[ "$output" == "eza --long /usr/local/bin --sort=size --reverse" ]]; then
     echo "✓ PASS: --eza with -lS"
     ((TESTS_PASSED++))
@@ -201,7 +203,7 @@ fi
 
 echo
 echo "--- Argument-consuming flags (no stdin) ---"
-output=$(./eza_ls --eza -b K /usr/local/bin 2>&1)
+output=$($BIN --eza -b K /usr/local/bin 2>&1)
 if [[ "$output" == "eza --binary /usr/local/bin" ]]; then
     echo "✓ PASS: -b K works (no stdin)"
     ((TESTS_PASSED++))
@@ -210,7 +212,7 @@ else
     ((TESTS_FAILED++))
 fi
 
-output=$(./eza_ls --eza -I "*.log" /usr/local/bin 2>&1)
+output=$($BIN --eza -I "*.log" /usr/local/bin 2>&1)
 if [[ "$output" == "eza --ignore-glob=*.log /usr/local/bin" ]]; then
     echo "✓ PASS: -I *.log works (no stdin)"
     ((TESTS_PASSED++))
@@ -219,12 +221,57 @@ else
     ((TESTS_FAILED++))
 fi
 
-output=$(./eza_ls --eza -w 80 /usr/local/bin 2>&1)
+output=$($BIN --eza -w 80 /usr/local/bin 2>&1)
 if [[ "$output" == "eza --width=80 /usr/local/bin" ]]; then
     echo "✓ PASS: -w 80 works (no stdin)"
     ((TESTS_PASSED++))
 else
     echo "✗ FAIL: -w 80 should not read from stdin"
+    ((TESTS_FAILED++))
+fi
+
+echo
+echo "--- No directory argument (defaults to .) ---"
+output=$($BIN --eza -l 2>&1)
+if [[ "$output" == "eza --long ." ]]; then
+    echo "✓ PASS: no dir defaults to ."
+    ((TESTS_PASSED++))
+else
+    echo "✗ FAIL: no dir should default to ."
+    echo "  Got: $output"
+    ((TESTS_FAILED++))
+fi
+
+output=$($BIN --eza -lt 2>&1)
+if [[ "$output" == "eza --long --sort=modified ." ]]; then
+    echo "✓ PASS: -lt no dir defaults to ."
+    ((TESTS_PASSED++))
+else
+    echo "✗ FAIL: -lt no dir should default to ."
+    echo "  Got: $output"
+    ((TESTS_FAILED++))
+fi
+
+echo
+echo "--- Edge cases ---"
+
+output=$($BIN --eza -- /tmp 2>&1)
+if [[ "$output" == "eza -- /tmp" ]]; then
+    echo "✓ PASS: -- separator passes through"
+    ((TESTS_PASSED++))
+else
+    echo "✗ FAIL: -- separator should pass through"
+    echo "  Got: $output"
+    ((TESTS_FAILED++))
+fi
+
+output=$($BIN --eza -l -- /tmp 2>&1)
+if [[ "$output" == "eza --long -- /tmp" ]]; then
+    echo "✓ PASS: -- after flags"
+    ((TESTS_PASSED++))
+else
+    echo "✗ FAIL: -- after flags"
+    echo "  Got: $output"
     ((TESTS_FAILED++))
 fi
 

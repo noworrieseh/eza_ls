@@ -8,6 +8,7 @@ has_reverse=0
 has_size_sort=0
 print_only=0
 arg_index=0
+has_file_arg=0
 
 scan_arg() {
     local arg="$1"
@@ -280,20 +281,24 @@ process_arg() {
             ;;
         *)
             eza_args+=("$arg")
+            has_file_arg=1
             ;;
     esac
 }
 
 arg_index=0
+stop_flag_processing=0
 while [[ $arg_index -lt ${#args[@]} ]]; do
     arg="${args[$arg_index]}"
     
     if [[ "$arg" == "--" ]]; then
+        eza_args+=("--")
+        stop_flag_processing=1
         ((arg_index++))
         continue
     fi
     
-    if [[ "$arg" == -* && "${#arg}" -gt 2 && "$arg" != "--"* ]]; then
+    if [[ $stop_flag_processing -eq 0 && "$arg" == -* && "${#arg}" -gt 2 && "$arg" != "--"* ]]; then
         prefix="${arg:0:2}"
         rest="${arg:2}"
         process_arg "$prefix"
@@ -315,6 +320,10 @@ if [[ $has_reverse -eq 1 && $has_size_sort -eq 0 ]]; then
 fi
 if [[ $has_size_sort -eq 1 && $has_reverse -eq 0 ]]; then
     eza_args+=("--reverse")
+fi
+
+if [[ $has_file_arg -eq 0 ]]; then
+    eza_args+=(".")
 fi
 
 if [[ $print_only -eq 1 ]]; then

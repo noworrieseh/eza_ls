@@ -7,10 +7,11 @@ file_args=()
 has_reverse=0
 has_size_sort=0
 has_human_readable=0
+has_group=0
 print_only=0
 arg_index=0
 has_file_arg=0
-ls_mode="eza"  # eza, bsd, or gnu
+has_unsorted=0
 
 scan_arg() {
     local arg="$1"
@@ -21,13 +22,22 @@ scan_arg() {
         -S)
             has_size_sort=1
             ;;
+        -f)
+            has_unsorted=1
+            ;;
         -h|--human-readable)
             has_human_readable=1
+            ;;
+        -G|--no-group)
+            has_group=1
+            ;;
+        -g|-o)
+            has_group=1
             ;;
         --eza)
             print_only=1
             ;;
-        -b|-I|-w|--block-size)
+        -b|-I|-w|--block-size|-D)
             ((arg_index++))
             ;;
     esac
@@ -80,6 +90,10 @@ process_arg() {
                 eza_args+=("--width=$next_arg")
                 return
                 ;;
+            -D)
+                eza_args+=("--time-style=+$next_arg")
+                return
+                ;;
         esac
     fi
     
@@ -124,12 +138,14 @@ process_arg() {
             eza_args+=("--treat-dirs-as-files")
             ;;
         -D)
-            eza_args+=("--dereference")
+            process_arg "$arg" 1
             ;;
         -e)
             ;;
         -f)
-            eza_args+=("--only-files")
+            eza_args+=("--all")
+            eza_args+=("--all")
+            eza_args+=("--sort=none")
             ;;
         -F|--classify)
             if [[ "$arg" == *=* ]]; then
@@ -137,9 +153,6 @@ process_arg() {
             else
                 eza_args+=("--classify=auto")
             fi
-            ;;
-        -g)
-            eza_args+=("--group")
             ;;
         -G)
             if [[ "$ls_mode" == "bsd" ]]; then
@@ -181,8 +194,15 @@ process_arg() {
         -O)
             eza_args+=("--flags")
             ;;
+        -g)
+            eza_args+=("--long")
+            eza_args+=("--no-user")
+            eza_args+=("--group")
+            has_group=1
+            ;;
         -o)
-            eza_args+=("--octal-permissions")
+            eza_args+=("--long")
+            has_group=1
             ;;
         -P)
             ;;
@@ -207,11 +227,7 @@ process_arg() {
             eza_args+=("--sort=modified")
             ;;
         -T)
-            if [[ "$ls_mode" == "bsd" ]]; then
-                eza_args+=("--time-style=full-iso")
-            else
-                eza_args+=("--tree")
-            fi
+            eza_args+=("--time-style=full-iso")
             ;;
         -T|--tab-size=*)
             ;;
@@ -368,12 +384,20 @@ if (( has_size_sort && !has_reverse )); then
     eza_args+=("--reverse")
 fi
 
+if (( has_unsorted )); then
+    eza_args+=("--sort=none")
+fi
+
 if (( !has_file_arg )); then
     eza_args+=(".")
 fi
 
 if (( !has_human_readable )); then
     eza_args+=("--bytes")
+fi
+
+if (( !has_group )); then
+    eza_args+=("-g")
 fi
 
 if ((print_only)); then

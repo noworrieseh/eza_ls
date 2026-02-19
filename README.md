@@ -38,9 +38,9 @@ eza_ls --eza -la /usr/local/bin
 | `-C` | `--grid` | Grid view |
 | `-d` | `--treat-dirs-as-files` | List dirs as files |
 | `-D` | `--dereference` | Dereference |
-| `-f` | `--only-files` | Only files |
+| `-f` | `--all --all --sort=none` | Disable sorting, show all files (like -a) |
 | `-F` | `--classify` | Type indicators |
-| `-g` | `--group` | Show group |
+| `-g` | `--long --no-user --group` | Long format (without owner, shows group) |
 | `-G` | (no group) | No group |
 | `-h` | (human-readable) | Human readable |
 | `-H` | `--links` | Show hard links |
@@ -51,7 +51,7 @@ eza_ls --eza -la /usr/local/bin
 | `-L` | `--dereference` | Dereference |
 | `-m` | `--modified` | Modified time |
 | `-n` | `--numeric` | Numeric IDs |
-| `-o` | `--octal-permissions` | Octal permissions |
+| `-o` | `--long` | Long format (without group) |
 | `-p` | `--classify` | Classify |
 | `-r` | `--reverse` | Reverse sort |
 | `-R` | `--recurse` | Recursive |

@@ -427,100 +427,14 @@ process_arg() {
         --eza)
             print_only=1
             ;;
-        # Debug: list unsupported options
-        --unsupported)
-            echo "Unsupported options in eza_ls:"
-            echo ""
-            echo "BSD-specific (macOS):"
-            echo "  -e         Print ACL (use -Z for security context)"
-            echo "  -O         File flags"
-            echo "  -P         Don't follow symlinks"
-            echo "  -W         Display whiteouts"
-            echo "  --author   Print author"
-            echo ""
-            echo "GNU-specific:"
-            echo "  -b, --escape            Escape non-printable (eza uses unicode)"
-            echo "  -Q, --quote-name        Quote names (eza uses different quoting)"
-            echo "  --quoting-style=WORD    Quoting style"
-            echo "  --si                    SI units (powers of 1000)"
-            echo "  -T, --tabsize=COLS      Tab size (eza uses fixed 8)"
-            echo "  -U                      Do not sort (eza always sorts)"
-            echo "  --zero                  End lines with NUL"
-            echo ""
-            echo "Partially supported:"
-            echo "  -h, --human-readable    Default adds --bytes, -h disables it"
-            echo "  --block-size=SIZE       Only K and B supported"
-            echo "  --format=WORD           Only long, single-column, vertical, across"
-            echo ""
-            echo "Eza repository: https://github.com/eza-community/eza"
-            exit 0
-            ;;
         # Help: print help
         --help)
-            echo "Usage: eza_ls [flags] [directory]"
-            echo ""
-            echo "The better eza drop-in replacement for ls."
-            echo ""
-            echo "Flags:"
-            echo "  -1, --oneline         One entry per line"
-            echo "  -a, --all             Show hidden files + . and .."
-            echo "  -A, --almost-all      Show hidden files (no . or ..)"
-            echo "  -b                    Escape non-printable (unsupported)"
-            echo "  -B, --ignore-backups  Ignore backup files"
-            echo "  -c                    Use ctime"
-            echo "  -C, --grid            Grid view"
-            echo "  -d, --directory       List directories as files"
-            echo "  -D format             Custom date format"
-            echo "  -e                    Show ACL (unsupported)"
-            echo "  -f                    No sort, show all"
-            echo "  -F, --classify        Type indicators"
-            echo "  -g                    Long without owner"
-            echo "  -G, --no-group        No group column"
-            echo "  -h, --human-readable  Human readable sizes"
-            echo "  -H                    Show hard links"
-            echo "  -i                    Show inode"
-            echo "  -I, --ignore PATTERN  Ignore pattern"
-            echo "  -k                    1024-byte blocks"
-            echo "  -l                    Long format"
-            echo "  -L, --dereference     Follow symlinks"
-            echo "  -m                    Modified time"
-            echo "  -n                    Numeric UID/GID"
-            echo "  -O                    File flags (unsupported)"
-            echo "  -o                    Long without group"
-            echo "  -p                    Classify directories"
-            echo "  -q                    Hide control chars (unsupported)"
-            echo "  -r, --reverse         Reverse sort"
-            echo "  -R, --recursive       Recursive"
-            echo "  -s                    Show block size"
-            echo "  -S                    Sort by size (largest first)"
-            echo "  -t                    Sort by time"
-            echo "  -T                    Tab size (unsupported)"
-            echo "  -u                    Use access time"
-            echo "  -U                    Use created time"
-            echo "  -v                    Version sort"
-            echo "  -W                    Show whiteouts (unsupported)"
-            echo "  -w, --width COLS      Set width"
-            echo "  -x                    Sort across"
-            echo "  -X                    Sort by extension"
-            echo "  -Z                    Show security context"
-            echo ""
-            echo "Long options:"
-            echo "  --color=WHEN          Color output"
-            echo "  --group-directories-first"
-            echo "  --group-directories-last"
-            echo "  --hide=PATTERN        Hide pattern"
-            echo "  --hyperlink           Hyperlink files"
-            echo "  --indicator-style=STYLE"
-            echo "  --sort=WORD           Sort by name/size/time/extension"
-            echo "  --time=FIELD          Time field"
-            echo "  --time-style=STYLE    Time format"
-            echo ""
-            echo "Debug options:"
-            echo "  --eza                 Print eza command instead of executing"
-            echo "  --help                Show this help"
-            echo "  --unsupported         List unsupported options"
-            echo ""
-            echo "Eza repository: https://github.com/eza-community/eza"
+            awk '/^# HELP_START$/,/^# HELP_END$/' "$0" | sed '1d;$d'
+            exit 0
+            ;;
+        # Debug: list unsupported options
+        --unsupported)
+            awk '/^# UNSUPPORTED_START$/,/^# UNSUPPORTED_END$/' "$0" | sed '1d;$d'
             exit 0
             ;;
         # Separator: pass through
@@ -600,3 +514,99 @@ if ((print_only)); then
 else
     exec eza "${eza_args[@]}"
 fi
+
+exit 0
+
+# HELP_START
+Usage: eza_ls [flags] [directory]
+
+The better eza drop-in replacement for ls.
+
+Flags:
+  -1, --oneline         One entry per line
+  -a, --all             Show hidden files + . and ..
+  -A, --almost-all      Show hidden files (no . or ..)
+  -b                    Escape non-printable (unsupported)
+  -B, --ignore-backups  Ignore backup files
+  -c                    Use ctime
+  -C, --grid            Grid view
+  -d, --directory       List directories as files
+  -D format             Custom date format
+  -e                    Show ACL (unsupported)
+  -f                    No sort, show all
+  -F, --classify        Type indicators
+  -g                    Long without owner
+  -G, --no-group        No group column
+  -h, --human-readable Human readable sizes
+  -H                    Show hard links
+  -i                    Show inode
+  -I, --ignore PATTERN  Ignore pattern
+  -k                    1024-byte blocks
+  -l                    Long format
+  -L, --dereference     Follow symlinks
+  -m                    Modified time
+  -n                    Numeric UID/GID
+  -O                    File flags (unsupported)
+  -o                    Long without group
+  -p                    Classify directories
+  -q                    Hide control chars (unsupported)
+  -r, --reverse         Reverse sort
+  -R, --recursive       Recursive
+  -s                    Show block size
+  -S                    Sort by size (largest first)
+  -t                    Sort by time
+  -T                    Tab size (unsupported)
+  -u                    Use access time
+  -U                    Use created time
+  -v                    Version sort
+  -W                    Show whiteouts (unsupported)
+  -w, --width COLS      Set width
+  -x                    Sort across
+  -X                    Sort by extension
+  -Z                    Show security context
+
+Long options:
+  --color=WHEN          Color output
+  --group-directories-first
+  --group-directories-last
+  --hide=PATTERN        Hide pattern
+  --hyperlink           Hyperlink files
+  --indicator-style=STYLE
+  --sort=WORD           Sort by name/size/time/extension
+  --time=FIELD          Time field
+  --time-style=STYLE    Time format
+
+Debug options:
+  --eza                 Print eza command instead of executing
+  --help                Show this help
+  --unsupported         List unsupported options
+
+Eza repository: https://github.com/eza-community/eza
+# HELP_END
+
+# UNSUPPORTED_START
+Unsupported options in eza_ls:
+
+BSD-specific (macOS):
+  -e         Print ACL (use -Z for security context)
+  -O         File flags
+  -P         Don't follow symlinks
+  -W         Display whiteouts
+  --author   Print author
+
+GNU-specific:
+  -b, --escape              Escape non-printable (eza uses unicode)
+  -Q, --quote-name         Quote names (eza uses different quoting)
+  --quoting-style=WORD    Quoting style
+  --si                     SI units (powers of 1000)
+  -T, --tabsize=COLS      Tab size (eza uses fixed 8)
+  -U                       Do not sort (eza always sorts)
+  --zero                   End lines with NUL
+
+Partially supported:
+  -h, --human-readable    Default adds --bytes, -h disables it
+  --block-size=SIZE       Only K and B supported
+  --format=WORD           Only long, single-column, vertical, across
+
+Eza repository: https://github.com/eza-community/eza
+# UNSUPPORTED_END

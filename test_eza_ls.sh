@@ -75,6 +75,82 @@ run_test_substring_stderr() {
     fi
 }
 
+run_test_not_substring() {
+    local flag="$1"
+    local unexpected_arg="$2"
+    local test_name="$3"
+    local dir="${4:-$TEST_DIR}"
+
+    output=$($BIN --eza $flag "$dir" 2>&1)
+
+    if [[ "$output" != *"$unexpected_arg"* ]]; then
+        echo "✓ PASS: $test_name"
+        ((TESTS_PASSED++))
+    else
+        echo "✗ FAIL: $test_name"
+        echo "  Expected to not find: $unexpected_arg"
+        echo "  Got: $output"
+        ((TESTS_FAILED++))
+    fi
+}
+
+run_test_not_substring_stderr() {
+    local flag="$1"
+    local unexpected_arg="$2"
+    local test_name="$3"
+    local dir="${4:-$TEST_DIR}"
+
+    output=$($BIN --eza $flag "$dir" 2>&1 >/dev/null)
+
+    if [[ "$output" != *"$unexpected_arg"* ]]; then
+        echo "✓ PASS: $test_name"
+        ((TESTS_PASSED++))
+    else
+        echo "✗ FAIL: $test_name"
+        echo "  Expected to not find: $unexpected_arg"
+        echo "  Got: $output"
+        ((TESTS_FAILED++))
+    fi
+}
+
+run_test_not_substring() {
+    local flag="$1"
+    local unexpected_arg="$2"
+    local test_name="$3"
+    local dir="${4:-$TEST_DIR}"
+
+    output=$($BIN --eza $flag "$dir" 2>&1)
+
+    if [[ "$output" != *"$unexpected_arg"* ]]; then
+        echo "✓ PASS: $test_name"
+        ((TESTS_PASSED++))
+    else
+        echo "✗ FAIL: $test_name"
+        echo "  Expected to not find: $unexpected_arg"
+        echo "  Got: $output"
+        ((TESTS_FAILED++))
+    fi
+}
+
+run_test_not_substring_stderr() {
+    local flag="$1"
+    local unexpected_arg="$2"
+    local test_name="$3"
+    local dir="${4:-$TEST_DIR}"
+
+    output=$($BIN --eza $flag "$dir" 2>&1 >/dev/null)
+
+    if [[ "$output" != *"$unexpected_arg"* ]]; then
+        echo "✓ PASS: $test_name"
+        ((TESTS_PASSED++))
+    else
+        echo "✗ FAIL: $test_name"
+        echo "  Expected to not find: $unexpected_arg"
+        echo "  Got: $output"
+        ((TESTS_FAILED++))
+    fi
+}
+
 run_test_exact() {
     local flag="$1"
     local expected="$2"
@@ -232,7 +308,7 @@ run_test_substring "--indicator-style=slash" "--classify" "--indicator-style=sla
 run_test_substring "--indicator-style=classify" "--classify" "--indicator-style=classify"
 run_test_substring "--hyperlink=auto" "--hyperlink" "--hyperlink"
 run_test_substring "--hyperlink=always" "--hyperlink" "--hyperlink=always"
-run_test_substring "--hyperlink=never" "--hyperlink" "--hyperlink=never"
+run_test_not_substring "--hyperlink=never" "--hyperlink" "--hyperlink=never"
 run_test_substring "--hyperlink" "--hyperlink" "--hyperlink (no arg)"
 run_test_substring "--hide=*.log" "--ignore-glob" "--hide=*.log"
 
@@ -251,7 +327,7 @@ run_test_substring_stderr "--author" "warning: unsupported option(s): --author" 
 run_test_substring_stderr "-O" "warning: unsupported option(s): -O" "-O shows warning"
 run_test_substring_stderr "-P" "warning: unsupported option(s): -P" "-P shows warning"
 run_test_substring_stderr "--tab-size=4" "warning: unsupported option(s): --tab-size=4" "--tab-size shows warning"
-run_test_substring_stderr "--indicator-style=none" "warning: unsupported option(s): --indicator-style=none" "--indicator-style=none shows warning"
+run_test_not_substring_stderr "--indicator-style=none" "warning" "--indicator-style=none shows no warning"
 
 echo ""
 echo "=== Invalid Value Tests ==="

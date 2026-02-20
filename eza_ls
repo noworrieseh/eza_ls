@@ -10,8 +10,6 @@ sort_type="none"
 has_human_readable=0
 has_group=0
 print_only=0
-arg_index=0
-has_file_arg=0
 needs_long=0
 unsupported_flags=()
 
@@ -48,9 +46,6 @@ scan_arg() {
         --eza)
             print_only=1
             ;;
-        -b|-I|-w|--block-size|-D)
-            ((arg_index++))
-            ;;
     esac
 }
 
@@ -65,50 +60,25 @@ while [[ $arg_index -lt ${#args[@]} ]]; do
         continue
     fi
 
-    if [[ $seen_ddash -eq 0 && "$arg" == -* && "${#arg}" -gt 2 && "$arg" != "--"* ]]; then
-        prefix="${arg:0:2}"
-        rest="${arg:2}"
-        scan_arg "$prefix"
-        for ((i=0; i<${#rest}; i++)); do
-            scan_arg "-${rest:$i:1}"
+    if [[ $seen_ddash -eq 0 && "$arg" == -* && "${#arg}" -gt 1 && "$arg" != "--"* ]]; then
+        for ((i=1; i<${#arg}; i++)); do
+            scan_arg "-${arg:$i:1}"
         done
     elif [[ $seen_ddash -eq 0 ]]; then
         scan_arg "$arg"
     fi
+
+    case "$arg" in
+        -b|-I|-w|--block-size|-D|--ignore|--width)
+            ((arg_index++))
+            ;;
+    esac
 
     ((arg_index++))
 done
 
 process_arg() {
     local arg="$1"
-    local consume_next="${2:-0}"
-
-    if [[ $consume_next -eq 1 ]]; then
-        ((arg_index++))
-        local next_arg="${args[$arg_index]}"
-        case "$arg" in
-            --block-size)
-                case "$next_arg" in
-                    K) eza_args+=("--binary") ;;
-                    B) eza_args+=("--bytes") ;;
-                    *) eza_args+=("--binary") ;;
-                esac
-                return
-                ;;
-            -I|--ignore)
-                eza_args+=("--ignore-glob=$next_arg")
-                return
-                ;;
-            -w|--width)
-                eza_args+=("--width=$next_arg")
-                return
-                ;;
-            -D)
-                eza_args+=("--time-style=+$next_arg")
-                return
-                ;;
-        esac
-    fi
 
     case "$arg" in
         # extended
@@ -146,7 +116,13 @@ process_arg() {
             ;;
         # blocksize
         --block-size)
-            process_arg "$arg" 1
+            ((arg_index++))
+            next_arg="${args[$arg_index]}"
+            case "$next_arg" in
+                K) eza_args+=("--binary") ;;
+                B) eza_args+=("--bytes") ;;
+                *) eza_args+=("--binary") ;;
+            esac
             ;;
         # ignore_backups
         -B|--ignore-backups)
@@ -166,7 +142,8 @@ process_arg() {
             ;;
         # date_format
         -D)
-            process_arg "$arg" 1
+            ((arg_index++))
+            eza_args+=("--time-style=+${args[$arg_index]}")
             ;;
         # show_acl
         -e)
@@ -192,11 +169,11 @@ process_arg() {
             ;;
         # no_group
         -G|--no-group)
-            # Handled in scan_arg
+            # Handled by has_group
             ;;
         # human
         -h|--human-readable)
-            # Handled in scan_arg
+            # Handled by has_human_readable
             ;;
         # follow_symlinks
         -H)
@@ -211,7 +188,8 @@ process_arg() {
             if [[ "$arg" == *=* ]]; then
                 eza_args+=("--ignore-glob=${arg#*=}")
             else
-                process_arg "$arg" 1
+                ((arg_index++))
+                eza_args+=("--ignore-glob=${args[$arg_index]}")
             fi
             ;;
         # kibibytes
@@ -220,7 +198,7 @@ process_arg() {
             ;;
         # long_format
         -l)
-            # Handled in scan_arg
+            # Handled by needs_long
             ;;
         # dereference
         -L|--dereference)
@@ -245,7 +223,7 @@ process_arg() {
             ;;
         # no_group
         -o)
-            # Handled in scan_arg
+            # Handled by has_group and needs_long
             ;;
         # no_symlinks
         -P)
@@ -299,8 +277,7 @@ process_arg() {
         -U)
             eza_args+=("--created")
             ;;
-        # unedited
-        # version_sort
+        # unedited / version_sort
         -v)
             unsupported_flags+=("$arg")
             ;;
@@ -316,7 +293,8 @@ process_arg() {
             if [[ "$arg" == *=* ]]; then
                 eza_args+=("--width=${arg#*=}")
             else
-                process_arg "$arg" 1
+                ((arg_index++))
+                eza_args+=("--width=${args[$arg_index]}")
             fi
             ;;
         # across
@@ -374,7 +352,8 @@ process_arg() {
             if [[ "$arg" == *=* ]]; then
                 hyperlink="${arg#*=}"
                 case "$hyperlink" in
-                    always|auto|never) eza_args+=("--hyperlink") ;;
+                    always|auto) eza_args+=("--hyperlink") ;;
+                    never) ;; # Do nothing
                     *) unsupported_flags+=("$arg") ;;
                 esac
             else
@@ -385,9 +364,7 @@ process_arg() {
         --indicator-style=*)
             style="${arg#*=}"
             case "$style" in
-                none)
-                    unsupported_flags+=("$arg")
-                    ;;
+                none) ;; # Do nothing
                 file-type) eza_args+=("--classify=never") ;;
                 classify) eza_args+=("--classify=always") ;;
                 slash) eza_args+=("--classify=auto") ;;
@@ -477,6 +454,7 @@ arg_index=0
 stop_flag_processing=0
 while [[ $arg_index -lt ${#args[@]} ]]; do
     arg="${args[$arg_index]}"
+    consumed_args=0
 
     if [[ "$arg" == "--" ]]; then
         eza_args+=("--")
@@ -485,21 +463,24 @@ while [[ $arg_index -lt ${#args[@]} ]]; do
         continue
     fi
 
-    if [[ $stop_flag_processing -eq 0 && "$arg" == -* && "${#arg}" -gt 2 && "$arg" != "--"* ]]; then
-        prefix="${arg:0:2}"
-        rest="${arg:2}"
-        process_arg "$prefix"
-        for ((i=0; i<${#rest}; i++)); do
-            process_arg "-${rest:$i:1}"
-        done
-    elif [[ $stop_flag_processing -eq 1 ]]; then
+    if [[ $stop_flag_processing -eq 1 ]]; then
         eza_args+=("$arg")
         has_file_arg=1
+    elif [[ "$arg" == -* && "${#arg}" -gt 1 && "$arg" != "--"* ]]; then
+        for ((i=1; i<${#arg}; i++)); do
+            process_arg "-${arg:$i:1}"
+        done
     else
         process_arg "$arg"
+        # check if arg consumes next
+        case "$arg" in
+            -I|-w|-D|--block-size|--ignore|--width)
+                consumed_args=1
+                ;;
+        esac
     fi
 
-    ((arg_index++))
+    arg_index=$((arg_index + 1 + consumed_args))
 done
 
 if (( has_sort )); then

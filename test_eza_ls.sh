@@ -329,6 +329,9 @@ run_test_substring_stderr "--si" "warning: unsupported option(s): --si" "--si sh
 run_test_substring_stderr "--author" "warning: unsupported option(s): --author" "--author shows warning"
 run_test_substring_stderr "-O" "warning: unsupported option(s): -O" "-O shows warning"
 run_test_substring_stderr "-P" "warning: unsupported option(s): -P" "-P shows warning"
+run_test_substring_stderr "-y" "warning: unsupported option(s): -y" "-y shows warning"
+run_test_substring_stderr "-%" "warning: unsupported option(s): -%" "-% shows warning"
+run_test_substring_stderr "-, " "warning: unsupported option(s): -," "-, shows warning"
 run_test_substring_stderr "--tab-size=4" "warning: unsupported option(s): --tab-size=4" "--tab-size shows warning"
 run_test_not_substring_stderr "--indicator-style=none" "warning" "--indicator-style=none shows no warning"
 

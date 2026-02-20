@@ -824,6 +824,42 @@
       "long_values": null,
       "short_values": null,
       "help": "Print ? for nongraphic chars"
+    },
+    {
+      "name": "samesort",
+      "short_flag": "-y",
+      "long_flag": null,
+      "bsd_desc": "When the -t option is set, sort the alphabetical output in the same order as the time sorting",
+      "gnu_desc": null,
+      "eza_flag": null,
+      "supported": "unsupported",
+      "long_values": null,
+      "short_values": null,
+      "help": "Sort alphabetical same as time"
+    },
+    {
+      "name": "comma",
+      "short_flag": "-,",
+      "long_flag": null,
+      "bsd_desc": "When the -l option is set, print file sizes grouped and separated by thousands using the non-monetary separator returned by localeconv(3)",
+      "gnu_desc": null,
+      "eza_flag": null,
+      "supported": "unsupported",
+      "long_values": null,
+      "short_values": null,
+      "help": "Group file sizes with thousands separator"
+    },
+    {
+      "name": "dataless",
+      "short_flag": "-%",
+      "long_flag": null,
+      "bsd_desc": "Distinguish dataless files and directories with a '%' character in long (-l) output, and don't materialize dataless directories when listing them",
+      "gnu_desc": null,
+      "eza_flag": null,
+      "supported": "unsupported",
+      "long_values": null,
+      "short_values": null,
+      "help": "Mark dataless files with '%'"
     }
   ]
 }

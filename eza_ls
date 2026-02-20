@@ -12,6 +12,7 @@ print_only=0
 arg_index=0
 has_file_arg=0
 has_unsorted=0
+unsupported_flags=()
 
 scan_arg() {
     local arg="$1"
@@ -44,22 +45,24 @@ scan_arg() {
 }
 
 arg_index=0
+seen_ddash=0
 while [[ $arg_index -lt ${#args[@]} ]]; do
     arg="${args[$arg_index]}"
 
     if [[ "$arg" == "--" ]]; then
+        seen_ddash=1
         ((arg_index++))
         continue
     fi
 
-    if [[ "$arg" == -* && "${#arg}" -gt 2 && "$arg" != "--"* ]]; then
+    if [[ $seen_ddash -eq 0 && "$arg" == -* && "${#arg}" -gt 2 && "$arg" != "--"* ]]; then
         prefix="${arg:0:2}"
         rest="${arg:2}"
         scan_arg "$prefix"
         for ((i=0; i<${#rest}; i++)); do
             scan_arg "-${rest:$i:1}"
         done
-    else
+    elif [[ $seen_ddash -eq 0 ]]; then
         scan_arg "$arg"
     fi
 
@@ -111,6 +114,7 @@ process_arg() {
             eza_args+=("--almost-all")
             ;;
         --author)
+            unsupported_flags+=("$arg")
             ;;
         -b)
             ;;
@@ -141,6 +145,7 @@ process_arg() {
             process_arg "$arg" 1
             ;;
         -e)
+            unsupported_flags+=("$arg")
             ;;
         -f)
             eza_args+=("--all")
@@ -160,6 +165,7 @@ process_arg() {
             fi
             ;;
         -G|--no-group)
+            unsupported_flags+=("$arg")
             ;;
         -h|--human-readable)
             ;;
@@ -205,11 +211,13 @@ process_arg() {
             has_group=1
             ;;
         -P)
+            unsupported_flags+=("$arg")
             ;;
         -p)
             eza_args+=("--classify=auto")
             ;;
         -q|--hide-control-chars)
+            unsupported_flags+=("$arg")
             ;;
         -r|--reverse)
             ;;
@@ -220,6 +228,7 @@ process_arg() {
             eza_args+=("--blocksize")
             ;;
         --si)
+            unsupported_flags+=("$arg")
             ;;
         -S)
             ;;
@@ -230,6 +239,7 @@ process_arg() {
             eza_args+=("--time-style=full-iso")
             ;;
         -T|--tab-size=*)
+            unsupported_flags+=("$arg")
             ;;
         -u)
             eza_args+=("--accessed")
@@ -241,6 +251,7 @@ process_arg() {
             eza_args+=("--version")
             ;;
         -W)
+            unsupported_flags+=("$arg")
             ;;
         -w|--width)
             if [[ "$arg" == *=* ]]; then
@@ -270,6 +281,7 @@ process_arg() {
             eza_args+=("--dereference")
             ;;
         --dired)
+            unsupported_flags+=("$arg")
             ;;
         --group-directories-first)
             eza_args+=("--group-directories-first")
@@ -286,18 +298,22 @@ process_arg() {
         --indicator-style=*)
             style="${arg#*=}"
             case "$style" in
-                none) ;;
+                none)
+                    unsupported_flags+=("$arg")
+                    ;;
                 file-type) eza_args+=("--classify=never") ;;
                 classify) eza_args+=("--classify=always") ;;
                 slash) eza_args+=("--classify=auto") ;;
             esac
             ;;
         --quoting-style=*)
+            unsupported_flags+=("$arg")
             ;;
         -N|--literal)
             eza_args+=("--no-quotes")
             ;;
         -Q|--quote-name)
+            unsupported_flags+=("$arg")
             ;;
         --show-all)
             eza_args+=("--all")
@@ -338,6 +354,7 @@ process_arg() {
         --)
             ;;
         -*)
+            unsupported_flags+=("$arg")
             ;;
         *)
             eza_args+=("$arg")
@@ -365,6 +382,9 @@ while [[ $arg_index -lt ${#args[@]} ]]; do
         for ((i=0; i<${#rest}; i++)); do
             process_arg "-${rest:$i:1}"
         done
+    elif [[ $stop_flag_processing -eq 1 ]]; then
+        eza_args+=("$arg")
+        has_file_arg=1
     else
         process_arg "$arg"
     fi
@@ -398,6 +418,10 @@ fi
 
 if (( !has_group )); then
     eza_args+=("-g")
+fi
+
+if [[ ${#unsupported_flags[@]} -gt 0 ]]; then
+    echo "eza_ls: warning: unsupported option(s): ${unsupported_flags[*]}" >&2
 fi
 
 if ((print_only)); then

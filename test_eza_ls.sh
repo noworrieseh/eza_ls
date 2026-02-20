@@ -83,6 +83,9 @@ echo "--- Three+ flag combinations ---"
 run_test "-lASr" "-ASrl" "-lASr = -ASrl"
 run_test "-laSr" "-aSrl" "-laSr = -aSrl"
 run_test "-lart -S -r" "-lart -Sr" "three flags with -r"
+run_test "-lA" "-Al" "-lA = -Al"
+run_test "-lR" "-Rl" "-lR = -Rl"
+run_test "-lS -r" "-lSr" "-lS -r removes extra reverse"
 
 echo
 echo "--- Size sort behavior ---"
@@ -170,14 +173,24 @@ run_coverage "--group-directories-last" "--group-directories-last" "--group-dire
 run_coverage "--show-all" "--all" "--show-all adds --all"
 run_coverage "--color=auto" "--colour=auto" "--color=auto adds --colour=auto"
 run_coverage "--color=never" "--colour=never" "--color=never adds --colour=never"
+run_coverage "--color=always" "--colour=always" "--color=always adds --colour=always"
 run_coverage "--sort=name" "--sort=name" "--sort=name"
 run_coverage "--sort=time" "--sort=modified" "--sort=time adds --sort=modified"
+run_coverage "--sort=extension" "--sort=extension" "--sort=extension"
+run_coverage "--sort=version" "--sort=name" "--sort=version maps to name"
 run_coverage "--time=accessed" "--accessed" "--time=accessed adds --accessed"
 run_coverage "--time=created" "--created" "--time=created adds --created"
+run_coverage "--time=modified" "--time=modified" "--time=modified"
+run_coverage "--time=changed" "--changed" "--time=changed"
 run_coverage "--time-style=long-iso" "--time-style=long-iso" "--time-style=long-iso"
 run_coverage "--time-style=iso" "--time-style=iso" "--time-style=iso"
+run_coverage "--time-style=full-iso" "--time-style=full-iso" "--time-style=full-iso"
 run_coverage "--indicator-style=slash" "--classify" "--indicator-style=slash adds --classify"
 run_coverage "--indicator-style=classify" "--classify" "--indicator-style=classify adds --classify"
+run_coverage "--indicator-style=none" "" "--indicator-style=none (no-op)"
+run_coverage "--hyperlink=auto" "--hyperlink" "--hyperlink"
+run_coverage "--hyperlink" "--hyperlink" "--hyperlink (no arg)"
+run_coverage "--hide=*.log" "--ignore-glob" "--hide=*.log adds --ignore-glob"
 
 echo
 echo "--- Debug --eza flag ---"
@@ -283,7 +296,14 @@ else
 fi
 
 echo
-echo "--- Edge cases ---"
+echo "--- Additional flags ---"
+run_coverage "-L" "--dereference" "-L adds --dereference"
+run_coverage "-O" "--flags" "-O adds --flags"
+run_coverage "-@" "--extended" "-@ adds --extended"
+run_coverage "-N" "--no-quotes" "-N adds --no-quotes"
+run_coverage "-Q" "" "-Q is unsupported (no-op)"
+run_coverage "--dired" "" "--dired is unsupported (no-op)"
+run_coverage "--quoting-style=c" "" "--quoting-style is unsupported (no-op)"
 
 output=$($BIN --eza -- /tmp 2>&1)
 if [[ "$output" == "eza -- /tmp --bytes -g" ]]; then
@@ -301,6 +321,46 @@ if [[ "$output" == "eza --long -- /tmp --bytes -g" ]]; then
     ((TESTS_PASSED++))
 else
     echo "✗ FAIL: -- after flags"
+    echo "  Got: $output"
+    ((TESTS_FAILED++))
+fi
+
+output=$($BIN --eza -- -testfile /tmp 2>&1)
+if [[ "$output" == "eza -- -testfile /tmp --bytes -g" ]]; then
+    echo "✓ PASS: -- passes dash filename"
+    ((TESTS_PASSED++))
+else
+    echo "✗ FAIL: -- should pass dash filename"
+    echo "  Got: $output"
+    ((TESTS_FAILED++))
+fi
+
+output=$($BIN --eza -l -- -testfile /tmp 2>&1)
+if [[ "$output" == "eza --long -- -testfile /tmp --bytes -g" ]]; then
+    echo "✓ PASS: -l -- with dash filename"
+    ((TESTS_PASSED++))
+else
+    echo "✗ FAIL: -l -- with dash filename"
+    echo "  Got: $output"
+    ((TESTS_FAILED++))
+fi
+
+output=$($BIN --eza -l /tmp /usr 2>&1)
+if [[ "$output" == "eza --long /tmp /usr --bytes -g" ]]; then
+    echo "✓ PASS: multiple directories"
+    ((TESTS_PASSED++))
+else
+    echo "✗ FAIL: multiple directories"
+    echo "  Got: $output"
+    ((TESTS_FAILED++))
+fi
+
+output=$($BIN --eza -- /tmp /usr 2>&1)
+if [[ "$output" == "eza -- /tmp /usr --bytes -g" ]]; then
+    echo "✓ PASS: -- with multiple directories"
+    ((TESTS_PASSED++))
+else
+    echo "✗ FAIL: -- with multiple directories"
     echo "  Got: $output"
     ((TESTS_FAILED++))
 fi

@@ -8,15 +8,25 @@ TEST_DIR="/usr/local/bin"
 
 BIN=./eza_ls
 
-run_test() {
+run_test_compare() {
     local flags1="$1"
     local flags2="$2"
     local test_name="$3"
+    local compare="${4:-eq}"
 
     output1=$($BIN $flags1 "$TEST_DIR" 2>&1 | head -20)
     output2=$($BIN $flags2 "$TEST_DIR" 2>&1 | head -20)
 
-    if [[ "$output1" == "$output2" ]]; then
+    passed=1
+    if [[ "$compare" == "eq" ]]; then
+        [[ "$output1" == "$output2" ]]
+        passed=$?
+    elif [[ "$compare" == "ne" ]]; then
+        [[ "$output1" != "$output2" ]]
+        passed=$?
+    fi
+
+    if (( passed == 0 )); then
         echo "✓ PASS: $test_name"
         ((TESTS_PASSED++))
     else
@@ -27,23 +37,12 @@ run_test() {
     fi
 }
 
+run_test() {
+    run_test_compare "$1" "$2" "$3" "eq"
+}
+
 run_test_different() {
-    local flags1="$1"
-    local flags2="$2"
-    local test_name="$3"
-
-    output1=$($BIN $flags1 "$TEST_DIR" 2>&1 | head -20)
-    output2=$($BIN $flags2 "$TEST_DIR" 2>&1 | head -20)
-
-    if [[ "$output1" != "$output2" ]]; then
-        echo "✓ PASS: $test_name"
-        ((TESTS_PASSED++))
-    else
-        echo "✗ FAIL: $test_name (expected different, got same)"
-        echo "  Flags 1: '$flags1'"
-        echo "  Flags 2: '$flags2'"
-        ((TESTS_FAILED++))
-    fi
+    run_test_compare "$1" "$2" "$3" "ne"
 }
 
 run_test_substring() {

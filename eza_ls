@@ -37,6 +37,13 @@ scan_arg() {
             ;;
         -g|-o)
             has_group=1
+            needs_long=1
+            ;;
+        -l)
+            needs_long=1
+            ;;
+        --full-time)
+            needs_long=1
             ;;
         --eza)
             print_only=1
@@ -104,31 +111,31 @@ process_arg() {
     fi
 
     case "$arg" in
-        # BSD/GNU: extended attributes
+        # extended
         -@)
             eza_args+=("--extended")
             ;;
-        # BSD/GNU: one per line
+        # one_per_line
         -1)
             eza_args+=("--oneline")
             ;;
-        # BSD/GNU: show hidden files + . and ..
+        # show_hidden
         -a|--all)
             eza_args+=("--all" "--all")
             ;;
-        # BSD/GNU: show hidden files (no . or ..)
+        # almost_all
         -A)
             eza_args+=("--almost-all")
             ;;
-        # GNU: author (unsupported)
+        # author
         --author)
             unsupported_flags+=("$arg")
             ;;
-        # unsupported: escape non-printable
+        # escape
         -b)
             unsupported_flags+=("$arg")
             ;;
-        # BSD/GNU: block size
+        # blocksize
         --block-size=*)
             size="${arg#*=}"
             case "$size" in
@@ -137,66 +144,69 @@ process_arg() {
                 *) eza_args+=("--binary") ;;
             esac
             ;;
-        # BSD/GNU: block size
+        # blocksize
         --block-size)
             process_arg "$arg" 1
             ;;
-        # GNU: ignore backups (~)
+        # ignore_backups
         -B)
             eza_args+=("--ignore-glob=*~")
             ;;
-        # BSD/GNU: ctime
+        # ctime_sort
         -c)
             eza_args+=("--time=changed" "--time-style=long-iso")
             ;;
-        # BSD/GNU: columns
+        # columns
         -C)
             eza_args+=("--grid")
             ;;
-        # BSD/GNU: list dirs as files
+        # dirs_files
         -d|--directory)
             eza_args+=("--treat-dirs-as-files")
             ;;
-        # BSD: custom date format
+        # date_format
         -D)
             process_arg "$arg" 1
             ;;
-        # BSD: print ACL (unsupported)
+        # show_acl
         -e)
             unsupported_flags+=("$arg")
             ;;
-        # BSD/GNU: no sort, show all
+        # no_sort
         -f)
             eza_args+=("--all")
             eza_args+=("--all")
             sort_type="none"
             ;;
-        # BSD/GNU: classify
-        -F|--classify)
+        # classify
+        -F|--classify|--classify=*)
             if [[ "$arg" == *=* ]]; then
-                eza_args+=("--classify=${arg#*=}")
+                classify="${arg#*=}"
+                case "$classify" in
+                    always|auto|never) eza_args+=("--classify=$classify") ;;
+                    *) echo "warning: --classify value must be auto, always, or never" >&2 ;;
+                esac
             else
                 eza_args+=("--classify=auto")
             fi
             ;;
-        # GNU: no group
-        -G)
-            ;;
-        # BSD/GNU: no group
+        # no_group
         -G|--no-group)
+            # Handled in scan_arg
             ;;
-        # BSD/GNU: human readable (handled specially)
+        # human
         -h|--human-readable)
+            # Handled in scan_arg
             ;;
-        # BSD/GNU: follow symlinks on command line
+        # follow_symlinks
         -H)
             eza_args+=("--links")
             ;;
-        # BSD/GNU: inode
+        # inode
         -i|--inode)
             eza_args+=("--inode")
             ;;
-        # BSD/GNU: ignore pattern
+        # ignore_pattern
         -I|--ignore)
             if [[ "$arg" == *=* ]]; then
                 eza_args+=("--ignore-glob=${arg#*=}")
@@ -204,103 +214,100 @@ process_arg() {
                 process_arg "$arg" 1
             fi
             ;;
-        # BSD/GNU: kibibytes
-        -k)
+        # kibibytes
+        -k|--kibibytes)
             eza_args+=("--binary")
             ;;
-        # BSD/GNU: long format
+        # long_format
         -l)
-            needs_long=1
+            # Handled in scan_arg
             ;;
-        # BSD/GNU: dereference
+        # dereference
         -L|--dereference)
             eza_args+=("--dereference")
             ;;
-        # BSD/GNU: modified time
+        # comma_list
         -m)
             eza_args+=("--modified")
             ;;
-        # BSD/GNU: numeric uid/gid
+        # numericid
         -n|--numeric-uid-gid)
             eza_args+=("--numeric")
             ;;
-        # BSD: file flags (unsupported)
+        # file_flags
         -O)
             unsupported_flags+=("$arg")
             ;;
-        # GNU: long without owner
+        # no_owner
         -g)
-            needs_long=1
             eza_args+=("--no-user")
             eza_args+=("--group")
-            has_group=1
             ;;
-        # GNU: long without group
+        # no_group
         -o)
-            needs_long=1
-            has_group=1
+            # Handled in scan_arg
             ;;
-        # BSD: don't follow symlinks (unsupported)
+        # no_symlinks
         -P)
             unsupported_flags+=("$arg")
             ;;
-        # BSD/GNU: classify directories
+        # dir_slash
         -p)
             eza_args+=("--classify=auto")
             ;;
-        # BSD/GNU: hide control chars (unsupported)
-        -q|--hide-control-chars)
+        # hide_control
+        -q|--hide-control-chars|--show-control-chars)
             unsupported_flags+=("$arg")
             ;;
-        # BSD/GNU: reverse
+        # reverse
         -r|--reverse)
             (( has_reverse = !has_reverse ))
             ;;
-        # BSD/GNU: recursive
+        # recursive
         -R|--recursive)
             eza_args+=("--recurse")
             ;;
-        # BSD/GNU: size
+        # size
         -s|--size)
             eza_args+=("--blocksize")
             ;;
-        # GNU: SI units (unsupported)
+        # si
         --si)
             unsupported_flags+=("$arg")
             ;;
-        # BSD/GNU: sort by size
+        # sort_size
         -S)
             sort_type="size"
             ;;
-        # BSD/GNU: sort by time
+        # sort_time
         -t)
             sort_type="modified"
             ;;
-        # BSD: full timestamp
+        # full_time
         -T)
             eza_args+=("--time-style=full-iso")
             ;;
-        # BSD/GNU: tab size (unsupported)
+        # tabsize
         --tab-size=*)
             unsupported_flags+=("$arg")
             ;;
-        # BSD/GNU: accessed time
+        # access_time_sort
         -u)
             eza_args+=("--accessed")
             ;;
-        # BSD: use created time
+        # created_time
         -U)
             eza_args+=("--created")
             ;;
-        # BSD/GNU: version
-        -v|--version)
+        # version
+        -v|-V|--version)
             eza_args+=("--version")
             ;;
-        # BSD: display whiteouts (unsupported)
+        # whiteouts
         -W)
             unsupported_flags+=("$arg")
             ;;
-        # BSD/GNU: width
+        # width
         -w|--width)
             if [[ "$arg" == *=* ]]; then
                 eza_args+=("--width=${arg#*=}")
@@ -308,61 +315,69 @@ process_arg() {
                 process_arg "$arg" 1
             fi
             ;;
-        # BSD/GNU: sort across
+        # across
         -x)
             eza_args+=("--across")
             ;;
-        # GNU: sort by extension
+        # extension
         -X|--sort=extension)
             sort_type="extension"
             ;;
-        # BSD/GNU: context
+        # context
         -Z|--context)
             eza_args+=("--context")
             ;;
-        # BSD/GNU: color
-        --color=*)
-            color="${arg#*=}"
+        # color
+        --color|--color=*)
+            if [[ "$arg" == *=* ]]; then
+                color="${arg#*=}"
+            else
+                color="always"
+            fi
             case "$color" in
                 always) eza_args+=("--colour=always") ;;
                 auto) eza_args+=("--colour=auto") ;;
                 never) eza_args+=("--colour=never") ;;
+                *) echo "warning: --color value must be auto, always, or never" >&2 ;;
             esac
             ;;
-        # BSD/GNU: dereference
+        # dereference
         --dereference)
             eza_args+=("--dereference")
             ;;
-        # GNU: emacs dired (unsupported)
+        # dired
         --dired)
             unsupported_flags+=("$arg")
             ;;
-        # BSD/GNU: file type
+        # filetype
         --file-type)
             eza_args+=("--classify=never")
             ;;
-        # BSD/GNU: full time
+        # full_timestamp
         --full-time)
-            needs_long=1
             eza_args+=("--time-style=full-iso")
             ;;
-        # BSD/GNU: group directories first
+        # dirs_first
         --group-directories-first)
             eza_args+=("--group-directories-first")
             ;;
-        # BSD/GNU: group directories last
-        --group-directories-last)
-            eza_args+=("--group-directories-last")
-            ;;
-        # BSD/GNU: hide pattern
+        # hide_pattern
         --hide=*)
             eza_args+=("--ignore-glob=${arg#*=}")
             ;;
-        # BSD/GNU: hyperlink
-        --hyperlink*)
-            eza_args+=("--hyperlink")
+        # hyperlink
+        --hyperlink|--hyperlink=*)
+            if [[ "$arg" == *=* ]]; then
+                hyperlink="${arg#*=}"
+                case "$hyperlink" in
+                    always|auto|never) eza_args+=("--hyperlink") ;;
+                    *) echo "warning: --hyperlink value must be auto, always, or never" >&2 ;;
+                esac
+            else
+                eza_args+=("--hyperlink")
+            fi
             ;;
-        # BSD/GNU: indicator style
+        # indicator
         --indicator-style=*)
             style="${arg#*=}"
             case "$style" in
@@ -372,25 +387,22 @@ process_arg() {
                 file-type) eza_args+=("--classify=never") ;;
                 classify) eza_args+=("--classify=always") ;;
                 slash) eza_args+=("--classify=auto") ;;
+                *) echo "warning: --indicator-style value must be none, file-type, classify, or slash" >&2 ;;
             esac
             ;;
-        # GNU: quoting style (unsupported)
+        # quoting
         --quoting-style=*)
             unsupported_flags+=("$arg")
             ;;
-        # BSD/GNU: literal
+        # no_quoting
         -N|--literal)
             eza_args+=("--no-quotes")
             ;;
-        # GNU: quote name (unsupported)
+        # quote_names
         -Q|--quote-name)
             unsupported_flags+=("$arg")
             ;;
-        # BSD/GNU: show all
-        --show-all)
-            eza_args+=("--all")
-            ;;
-        # BSD/GNU: sort
+        # sort_field
         --sort=*)
             sort_field="${arg#*=}"
             case "$sort_field" in
@@ -403,7 +415,7 @@ process_arg() {
                 *) sort_type="$sort_field" ;;
             esac
             ;;
-        # BSD/GNU: time field
+        # time_field
         --time=*)
             time_field="${arg#*=}"
             case "$time_field" in
@@ -413,7 +425,7 @@ process_arg() {
                 *) eza_args+=("--time=$time_field") ;;
             esac
             ;;
-        # BSD/GNU: time style
+        # time_style
         --time-style=*)
             style="${arg#*=}"
             case "$style" in
@@ -441,7 +453,7 @@ process_arg() {
         # Separator: pass through
         --)
             ;;
-        # Unknown option
+        # other
         -*)
             unsupported_flags+=("$arg")
             ;;
@@ -527,13 +539,13 @@ Flags:
   -1, --oneline         One entry per line
   -a, --all             Show hidden files + . and ..
   -A, --almost-all      Show hidden files (no . or ..)
-  -b                    Escape non-printable (unsupported)
+  -b                    Escape non-printable
   -B, --ignore-backups  Ignore backup files
   -c                    Use ctime
   -C, --grid            Grid view
   -d, --directory       List directories as files
   -D format             Custom date format
-  -e                    Show ACL (unsupported)
+  -e                    Show ACL
   -f                    No sort, show all
   -F, --classify        Type indicators
   -g                    Long without owner
@@ -547,32 +559,31 @@ Flags:
   -L, --dereference     Follow symlinks
   -m                    Modified time
   -n                    Numeric UID/GID
-  -O                    File flags (unsupported)
+  -O                    File flags
   -o                    Long without group
   -p                    Classify directories
-  -q                    Hide control chars (unsupported)
+  -q                    Hide control chars
   -r, --reverse         Reverse sort
   -R, --recursive       Recursive
   -s                    Show block size
   -S                    Sort by size (largest first)
   -t                    Sort by time
-  -T                    Tab size (unsupported)
+  -T                    Tab size
   -u                    Use access time
   -U                    Use created time
   -v                    Version sort
-  -W                    Show whiteouts (unsupported)
+  -W                    Show whiteouts
   -w, --width COLS      Set width
   -x                    Sort across
   -X                    Sort by extension
   -Z                    Show security context
 
 Long options:
-  --color=WHEN          Color output
+  --color=WHEN          Color output (auto/always/never)
   --group-directories-first
-  --group-directories-last
   --hide=PATTERN        Hide pattern
   --hyperlink           Hyperlink files
-  --indicator-style=STYLE
+  --indicator-style=STYLE Indicator style
   --sort=WORD           Sort by name/size/time/extension
   --time=FIELD          Time field
   --time-style=STYLE    Time format
@@ -593,21 +604,16 @@ BSD-specific (macOS):
   -O         File flags
   -P         Don't follow symlinks
   -W         Display whiteouts
-  --author   Print author
 
 GNU-specific:
+  --author   Print author
   -b, --escape              Escape non-printable (eza uses unicode)
-  -Q, --quote-name         Quote names (eza uses different quoting)
+  -Q, --quote-name         Quote names
   --quoting-style=WORD    Quoting style
   --si                     SI units (powers of 1000)
-  -T, --tabsize=COLS      Tab size (eza uses fixed 8)
+  -T, --tabsize=COLS      Tab size
   -U                       Do not sort (eza always sorts)
   --zero                   End lines with NUL
-
-Partially supported:
-  -h, --human-readable    Default adds --bytes, -h disables it
-  --block-size=SIZE       Only K and B supported
-  --format=WORD           Only long, single-column, vertical, across
 
 Eza repository: https://github.com/eza-community/eza
 # UNSUPPORTED_END

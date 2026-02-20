@@ -194,6 +194,7 @@ run_test_substring "-p" "--classify" "-p"
 
 run_test_substring "-B" "--bytes" "-B"
 run_test_substring "-k" "--binary" "-k"
+run_test_substring "--kibibytes" "--binary" "--kibibytes"
 
 run_test_substring "-b" "" "-b"
 run_test_substring "--block-size=K" "--binary" "--block-size=K"
@@ -209,11 +210,11 @@ run_test_substring "--file-type" "--classify=never" "--file-type"
 run_test_substring "--full-time" "--time-style=full-iso" "--full-time"
 
 run_test_substring "--group-directories-first" "--group-directories-first" "--group-directories-first"
-run_test_substring "--group-directories-last" "--group-directories-last" "--group-directories-last"
-run_test_substring "--show-all" "--all" "--show-all"
+run_test_substring_stderr "--group-directories-last" "warning: unsupported option(s): --group-directories-last" "--group-directories-last is unsupported"
 run_test_substring "--color=auto" "--colour=auto" "--color=auto"
 run_test_substring "--color=never" "--colour=never" "--color=never"
 run_test_substring "--color=always" "--colour=always" "--color=always"
+run_test_substring "--color" "--colour=always" "--color (no value = always)"
 run_test_substring "--sort=name" "--sort=name" "--sort=name"
 run_test_substring "--sort=time" "--sort=modified" "--sort=time"
 run_test_substring "--sort=extension" "--sort=extension" "--sort=extension"
@@ -247,9 +248,10 @@ run_test_substring_stderr "-O" "warning: unsupported option(s): -O" "-O shows wa
 run_test_substring_stderr "-P" "warning: unsupported option(s): -P" "-P shows warning"
 run_test_substring_stderr "--tab-size=4" "warning: unsupported option(s): --tab-size=4" "--tab-size shows warning"
 run_test_substring_stderr "--indicator-style=none" "warning: unsupported option(s): --indicator-style=none" "--indicator-style=none shows warning"
+run_test_substring_stderr "--show-control-chars" "warning: unsupported option(s): --show-control-chars" "--show-control-chars shows warning"
 
-run_test_substring "--show-all" "--all" "--show-all"
 run_test_substring "-v" "--version" "-v"
+run_test_substring "-V" "--version" "-V"
 run_test_substring "--version" "--version" "--version"
 
 run_test_substring "--eza -l" "eza" "--eza flag"

@@ -760,7 +760,7 @@
       "bsd_desc": "Stream output format; list files across the page, separated by commas",
       "gnu_desc": "fill width with a comma separated list of entries",
       "eza_flag": null,
-      "supported": "all",
+      "supported": "unsupported",
       "long_values": null,
       "short_values": null,
       "help": "Comma-separated list"
@@ -776,6 +776,54 @@
       "long_values": null,
       "short_values": null,
       "help": "Emacs dired mode"
+    },
+    {
+      "name": "format",
+      "short_flag": null,
+      "long_flag": "--format",
+      "bsd_desc": null,
+      "gnu_desc": "across,horizontal (-x), commas (-m), long (-l), single-column (-1), verbose (-l), vertical (-C)",
+      "eza_flag": null,
+      "supported": "unsupported",
+      "long_values": "across,commas,horizontal,long,single-column,verbose,vertical",
+      "short_values": null,
+      "help": "Set output format"
+    },
+    {
+      "name": "dereference_command_line_symlink_to_dir",
+      "short_flag": null,
+      "long_flag": "--dereference-command-line-symlink-to-dir",
+      "bsd_desc": null,
+      "gnu_desc": "follow each command line symbolic link that points to a directory",
+      "eza_flag": null,
+      "supported": "unsupported",
+      "long_values": null,
+      "short_values": null,
+      "help": "Follow symlinks to directories"
+    },
+    {
+      "name": "show_control_chars",
+      "short_flag": null,
+      "long_flag": "--show-control-chars",
+      "bsd_desc": null,
+      "gnu_desc": "show nongraphic characters as-is",
+      "eza_flag": null,
+      "supported": "unsupported",
+      "long_values": null,
+      "short_values": null,
+      "help": "Show control characters"
+    },
+    {
+      "name": "hide_control_chars",
+      "short_flag": "-q",
+      "long_flag": "--hide-control-chars",
+      "bsd_desc": null,
+      "gnu_desc": "print ? instead of nongraphic characters",
+      "eza_flag": null,
+      "supported": "unsupported",
+      "long_values": null,
+      "short_values": null,
+      "help": "Print ? for nongraphic chars"
     }
   ]
 }

@@ -234,7 +234,7 @@ process_arg() {
             eza_args+=("--classify=auto")
             ;;
         # hide_control
-        -q|--hide-control-chars|--show-control-chars)
+        -q|--hide-control-chars|--show-control-chars|--format=*|--dereference-command-line-symlink-to-dir)
             unsupported_flags+=("$arg")
             ;;
         # reverse
@@ -525,55 +525,55 @@ Usage: eza_ls [flags] [directory]
 The better eza drop-in replacement for ls.
 
 Flags:
-  -1, --oneline         One entry per line
-  -a, --all             Show hidden files + . and ..
+  -1                    One entry per line
+  -a, --all             Show hidden files
   -A, --almost-all      Show hidden files (no . or ..)
-  -b                    Escape non-printable
-  -B, --ignore-backups  Ignore backup files
-  -c                    Use ctime
-  -C, --grid            Grid view
+  -B, --ignore-backups  Ignore backup files (~)
+  -c                    Use ctime for sorting
+  -C                    List in columns
   -d, --directory       List directories as files
   -D format             Custom date format
-  -e                    Show ACL
   -f                    No sort, show all
-  -F, --classify        Type indicators
+  -F, --classify        Type indicators (*/=>@|)
   -g                    Long without owner
   -G, --no-group        No group column
   -h, --human-readable  Human readable sizes
-  -H                    Show hard links
-  -i                    Show inode
+  -H                    Follow symlinks on command line
+  -i, --inode           Show inode numbers
   -I, --ignore PATTERN  Ignore pattern
-  -k                    1024-byte blocks
+  -k, --kibibytes       1024-byte blocks
   -l                    Long format
   -L, --dereference     Follow symlinks
-  -n                    Numeric UID/GID
-  -O                    File flags
+  -n, --numeric-uid-gid Numeric UID/GID
+  -N, --literal         No quoting
   -o                    Long without group
-  -p                    Classify directories
-  -q                    Hide control chars
+  -p, --indicator-style Indicator for directories
   -r, --reverse         Reverse sort
   -R, --recursive       Recursive
-  -s                    Show block size
+  -s, --size            Show size
   -S                    Sort by size (largest first)
   -t                    Sort by time
-  -T                    Tab size
+  -T                    Full timestamp
   -u                    Use access time
   -U                    Use created time
-  -W                    Show whiteouts
-  -w, --width COLS      Set width
-  -x                    Sort across
-  -X                    Sort by extension
-  -Z                    Show security context
+  -w, --width COLS      Set output width
+  -x                    Sort across columns
+  -X, --sort=extension  Sort by extension
+  -Z, --context         Security context
+  -@                    Extended attributes
 
 Long options:
   --color=WHEN          Color output (auto/always/never)
+  --file-type           File type indicator (no *)
+  --full-time           Full timestamp
   --group-directories-first
   --hide=PATTERN        Hide pattern
-  --hyperlink           Hyperlink files
-  --indicator-style=STYLE Indicator style
-  --sort=WORD           Sort by name/size/time/extension
+  --hyperlink[=WHEN]    Hyperlink files
+  --indicator-style=WORD Indicator style
+  --sort=WORD           Sort field
   --time=FIELD          Time field
   --time-style=STYLE    Time format
+  --version             Output version information
 
 Debug options:
   --eza                 Print eza command instead of executing
@@ -588,8 +588,8 @@ Unsupported options in eza_ls:
 
 BSD-specific (macOS):
   -e         Print ACL (use -Z for security context)
-  -m         Comma-separated stream
   -O         File flags
+  -m         Comma-separated list
   -P         Don't follow symlinks
   -v         Force unedited printing
   -W         Display whiteouts
@@ -597,8 +597,13 @@ BSD-specific (macOS):
 GNU-specific:
   --author                Print author
   -b, --escape            Escape non-printable (eza uses unicode)
+  -D, --dired             generate output designed for Emacs' dired mode
+  --dereference-command-line-symlink-to-dir Follow command line symlinks to directories
+  --format                Set output format
+  -q, --hide-control-chars Print ? for nongraphic chars
   -Q, --quote-name        Quote names
   --quoting-style=WORD    Quoting style
+  --show-control-chars    Show control characters
   --si                    SI units (powers of 1000)
   -T, --tabsize=COLS      Tab size
   -U                      Do not sort (eza always sorts)

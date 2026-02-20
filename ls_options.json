@@ -108,7 +108,7 @@
     {
       "name": "date_format",
       "short_flag": "-D",
-      "long_flag": "--dired",
+      "long_flag": null,
       "bsd_desc": "When printing in the long (-l) format, use format to format the date and time output",
       "gnu_desc": null,
       "eza_flag": "--time-style=+FORMAT",
@@ -181,7 +181,7 @@
       "name": "color_bsd",
       "short_flag": "-G",
       "long_flag": null,
-      "bsd_desc": "Enable colorized output.  This option is equivalent to defining CLICOLOR or COLORTERM in the environment and setting --color=auto.  (See below.)  This functionality can be compiled out by removing the definition of COLORLS.  This option is not defined in IEEE Std 1003.1-2008 (“POSIX.1”).",
+      "bsd_desc": "Enable colorized output.  This option is equivalent to defining CLICOLOR or COLORTERM in the environment and setting --color=auto.  (See below.)  This functionality can be compiled out by removing the definition of COLORLS.  This option is not defined in IEEE Std 1003.1-2008 (\u201cPOSIX.1\u201d).",
       "gnu_desc": null,
       "eza_flag": null,
       "supported": "unsupported",
@@ -728,6 +728,30 @@
       "eza_flag": null,
       "values": null,
       "help": "NUL output"
+    },
+    {
+      "name": "unedited",
+      "short_flag": "-v",
+      "long_flag": null,
+      "bsd_desc": "Force unedited printing of non-graphic characters",
+      "gnu_desc": null,
+      "eza_flag": null,
+      "supported": "unsupported",
+      "implemented": "unsupported",
+      "values": null,
+      "help": "Force unedited printing"
+    },
+    {
+      "name": "version_sort",
+      "short_flag": "-v",
+      "long_flag": null,
+      "bsd_desc": null,
+      "gnu_desc": "natural sort of (version) numbers within text",
+      "eza_flag": null,
+      "supported": "unsupported",
+      "implemented": "unsupported",
+      "values": null,
+      "help": "Version sort"
     }
   ]
 }

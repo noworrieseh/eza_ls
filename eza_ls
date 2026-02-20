@@ -299,8 +299,12 @@ process_arg() {
         -U)
             eza_args+=("--created")
             ;;
-        # version
-        -v|-V|--version)
+        # -v: BSD unedited / GNU version sort (unsupported)
+        # --version: print version info
+        -v)
+            unsupported_flags+=("$arg")
+            ;;
+        --version)
             eza_args+=("--version")
             ;;
         # whiteouts
@@ -571,7 +575,6 @@ Flags:
   -T                    Tab size
   -u                    Use access time
   -U                    Use created time
-  -v                    Version sort
   -W                    Show whiteouts
   -w, --width COLS      Set width
   -x                    Sort across
@@ -603,6 +606,7 @@ BSD-specific (macOS):
   -e         Print ACL (use -Z for security context)
   -O         File flags
   -P         Don't follow symlinks
+  -v         Force unedited printing
   -W         Display whiteouts
 
 GNU-specific:
@@ -613,6 +617,7 @@ GNU-specific:
   --si                     SI units (powers of 1000)
   -T, --tabsize=COLS      Tab size
   -U                       Do not sort (eza always sorts)
+  -v                       Version sort (unsupported)
   --zero                   End lines with NUL
 
 Eza repository: https://github.com/eza-community/eza

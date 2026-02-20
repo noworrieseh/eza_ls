@@ -5,12 +5,15 @@
 
 ## Files
 - `eza_ls` - Main wrapper script
-- `test_eza_ls.sh` - Test suite (114 tests)
+- `test_eza_ls.sh` - Test suite (186 tests)
+- `ls_options.json` - Structured JSON documentation of all ls options
 
 ## Usage
 ```bash
 ./eza_ls [flags] [directory]
 ./eza_ls --eza [flags] [directory]  # Print eza command instead of executing
+./eza_ls --help    # Show help
+./eza_ls --unsupported  # List unsupported options
 ```
 
 ## Key Design Decisions
@@ -33,7 +36,6 @@ Flags that require an additional argument use an index-based approach:
 - Maintain `arg_index` variable to track current position
 - Use `process_arg "$arg" 1` to consume next argument
 - Must also increment in `scan_arg` for proper two-pass processing
-- Flags: `-b`, `-I`, `-w`, `--block-size`, `-D`
 
 ### 4. Combined Flag Processing
 Combined flags like `-la` are split and processed in reverse order so that:
@@ -63,13 +65,20 @@ Unsupported flags produce a warning to stderr:
 eza_ls: warning: unsupported option(s): -Q --dired
 ```
 
-### 9. BSD vs GNU Behavior
+### 9. Value Validation
+Options with allowed values (color, classify, hyperlink, indicator-style) validate input and warn on invalid values:
+- `--color=invalid` → warning: --color value must be auto, always, or never
+
+### 10. BSD vs GNU Behavior
 - `-D`: Uses BSD behavior (`--time-style=+FORMAT`)
 - `-U`: Uses BSD behavior (`--created`)
 - `-T`: Uses BSD behavior (`--time-style=full-iso`)
 - `-X`: Uses GNU behavior (`--sort=extension`)
 - `-B`: Uses GNU behavior (`--ignore-glob=*~`)
 - `-G`: Uses GNU behavior (no group, eza default)
+
+### 11. Never Delete Entries from ls_options.json
+Entries should never be removed from ls_options.json without user confirmation. Instead, mark unsupported options with `supported: "unsupported"` and document why in the `notes` field.
 
 ## Flag Mappings
 
@@ -99,7 +108,6 @@ eza_ls: warning: unsupported option(s): -Q --dired
 - `-Z` → `--context`
 - `-g` → sets `needs_long`, `--no-user --group`
 - `-H` → `--links`
-- `-O` → `--flags`
 
 ### Time Flags
 - `-u` → `--accessed`
@@ -122,34 +130,39 @@ eza_ls: warning: unsupported option(s): -Q --dired
 - `-k` → `--binary`
 
 ### Long Options
+- `--color[=auto|always|never]` → `--colour=...`
+- `--classify[=auto|always|never]` → `--classify=...`
+- `--hyperlink[=auto|always|never]` → `--hyperlink`
 - `--group-directories-first`
-- `--group-directories-last`
-- `--show-all` → `--all`
-- `--color=auto|never|always` → `--colour=...`
 - `--sort=name|time|size|extension|version`
 - `--time=accessed|created|modified|changed`
 - `--time-style=iso|long-iso|full-iso|+FORMAT`
-- `--indicator-style=slash|classify|file-type`
+- `--indicator-style=none|file-type|classify|slash`
 - `--hide=PATTERN` → `--ignore-glob=PATTERN`
-- `--hyperlink`
 - `-N` → `--no-quotes`
 - `--file-type` → `--classify=never`
 - `--full-time` → sets `needs_long` + `--time-style=full-iso`
 
-### Debug Flag
+### Debug Flags
 - `--eza` - Print the resulting eza command instead of executing
 
-### Unsupported (warning only)
-- `-Q` → quote names
-- `--dired` → emacs dired support
-- `--quoting-style` → quoting style
-- `--indicator-style=none` → no indicator
-- `-P` → BSD: do not follow symbolic links
-- `-q` → hide control characters
-- `-W` → BSD: print raw entries
-- `--si` → SI units
-- `-T` → tab size
-- `--author` → author (GNU only)
+## Unsupported Options
+
+### BSD-specific (macOS)
+- `-e` → Print ACL (use -Z for security context)
+- `-O` → File flags
+- `-P` → Don't follow symlinks
+- `-W` → Display whiteouts
+
+### GNU-specific
+- `--author` → Print author
+- `-b`, `--escape` → Escape non-printable (eza uses unicode)
+- `-Q`, `--quote-name` → Quote names
+- `--quoting-style=WORD` → Quoting style
+- `--si` → SI units (powers of 1000)
+- `-T`, `--tabsize=COLS` → Tab size
+- `-U` → Do not sort (eza always sorts)
+- `--zero` → End lines with NUL
 
 ## Known Issues Fixed
 1. **Size sort reversal**: `-S` now sorts largest first (like ls)
@@ -160,6 +173,7 @@ eza_ls: warning: unsupported option(s): -Q --dired
 6. **Unsupported warnings**: Warns when using unsupported flags
 7. **-g/-o with -l**: Only adds `--long` once using `needs_long` flag
 8. **-D**: Uses BSD behavior (`--time-style=+FORMAT`)
+9. **Value validation**: Invalid values for --color, --classify, --hyperlink, --indicator-style show warnings
 
 ## Running Tests
 ```bash

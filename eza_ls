@@ -108,21 +108,12 @@ process_arg() {
             ;;
         # blocksize
         --block-size=*)
-            size="${arg#*=}"
-            case "$size" in
-                K) eza_args+=("--binary") ;;
-                B) eza_args+=("--bytes") ;;
-                *) eza_args+=("--binary") ;;
-            esac
-            ;;
-        # blocksize
-        --block-size)
             ((arg_index++))
             next_arg="${args[$arg_index]}"
             case "$next_arg" in
                 K) eza_args+=("--binary") ;;
                 B) eza_args+=("--bytes") ;;
-                *) eza_args+=("--binary") ;;
+                *) unsupported_flags+=("$arg") ;;
             esac
             ;;
         # ignore_backups

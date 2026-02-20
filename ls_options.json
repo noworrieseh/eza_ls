@@ -240,7 +240,7 @@
     {
       "name": "kibibytes",
       "short_flag": "-k",
-      "long_flag": "--block-size",
+      "long_flag": "--kibibytes",
       "bsd_desc": "This has the same effect as setting environment variable BLOCKSIZE to 1024, except that it also nullifies any -h options to its left.",
       "gnu_desc": "default to 1024-byte blocks for file system usage; used only with -s and per directory totals",
       "eza_flag": "--binary",
@@ -248,6 +248,18 @@
       "long_values": null,
       "short_values": null,
       "help": "1024-byte blocks"
+    },
+    {
+      "name": "blocksize",
+      "short_flag": null,
+      "long_flag": "--block-size",
+      "bsd_desc": null,
+      "gnu_desc": "with -l, scale sizes by SIZE when printing them; e.g., '--block-size=M'; see SIZE format below",
+      "eza_flag": "--binary",
+      "supported": "all",
+      "long_values": "K,B",
+      "short_values": null,
+      "help": "Block size"
     },
     {
       "name": "long_format",
@@ -452,6 +464,18 @@
       "long_values": null,
       "short_values": null,
       "help": "Sort across columns"
+    },
+    {
+      "name": "dont_cross",
+      "short_flag": "-X",
+      "long_flag": null,
+      "bsd_desc": "When listing recursively, do not descend into directories that would cross file system boundaries (different device number)",
+      "gnu_desc": null,
+      "eza_flag": null,
+      "supported": "unsupported",
+      "long_values": null,
+      "short_values": null,
+      "help": "Don't cross filesystem boundaries"
     },
     {
       "name": "extension",

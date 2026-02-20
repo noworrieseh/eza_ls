@@ -4,6 +4,7 @@
 args=("$@")
 eza_args=()
 file_args=()
+has_file_arg=0
 has_reverse=0
 has_sort=0
 sort_type="none"
@@ -161,7 +162,7 @@ process_arg() {
                 classify="${arg#*=}"
                 case "$classify" in
                     always|auto|never) eza_args+=("--classify=$classify") ;;
-                    *) echo "warning: --classify value must be auto, always, or never" >&2 ;;
+                    *) unsupported_flags+=("$arg") ;;
                 esac
             else
                 eza_args+=("--classify=auto")
@@ -199,10 +200,6 @@ process_arg() {
         # long_format
         -l)
             # Handled by needs_long
-            ;;
-        # dereference
-        -L|--dereference)
-            eza_args+=("--dereference")
             ;;
         # comma_list
         -m)
@@ -598,7 +595,8 @@ GNU-specific:
   --author                Print author
   -b, --escape            Escape non-printable (eza uses unicode)
   -D, --dired             generate output designed for Emacs' dired mode
-  --dereference-command-line-symlink-to-dir Follow command line symlinks to directories
+  --dereference-command-line-symlink-to-dir
+                          Follow command line symlinks to directories
   --format                Set output format
   -q, --hide-control-chars Print ? for nongraphic chars
   -Q, --quote-name        Quote names
@@ -607,7 +605,7 @@ GNU-specific:
   --si                    SI units (powers of 1000)
   -T, --tabsize=COLS      Tab size
   -U                      Do not sort (eza always sorts)
-  -v                      Version sort (unsupported)
+  -v                      Version sort
   --zero                  End lines with NUL
 
 Eza repository: https://github.com/eza-community/eza

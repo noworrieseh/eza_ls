@@ -336,7 +336,7 @@ echo ""
 echo "=== Invalid Value Tests ==="
 
 run_test_substring_stderr "--color=invalid" "warning: unsupported option(s): --color=invalid" "--color=invalid"
-run_test_substring_stderr "--classify=invalid" "warning: --classify value must be auto, always, or never" "--classify=invalid"
+run_test_substring_stderr "--classify=invalid" "unsupported option(s): --classify=invalid" "--classify=invalid"
 run_test_substring_stderr "--hyperlink=invalid" "warning: unsupported option(s): --hyperlink=invalid" "--hyperlink=invalid"
 run_test_substring_stderr "--show-control-chars" "warning: unsupported option(s): --show-control-chars" "--show-control-chars shows warning"
 run_test_substring_stderr "-v" "warning: unsupported option(s): -v" "-v"

@@ -149,7 +149,7 @@ process_arg() {
             process_arg "$arg" 1
             ;;
         # ignore_backups
-        -B)
+        -B|--ignore-backups)
             eza_args+=("--ignore-glob=*~")
             ;;
         # ctime_sort
@@ -396,6 +396,10 @@ process_arg() {
             ;;
         # quoting
         --quoting-style=*)
+            unsupported_flags+=("$arg")
+            ;;
+        # nul_output
+        --zero)
             unsupported_flags+=("$arg")
             ;;
         # no_quoting

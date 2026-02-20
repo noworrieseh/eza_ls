@@ -17,16 +17,8 @@ run_test_compare() {
     output1=$($BIN $flags1 "$TEST_DIR" 2>&1 | head -20)
     output2=$($BIN $flags2 "$TEST_DIR" 2>&1 | head -20)
 
-    passed=1
-    if [[ "$compare" == "eq" ]]; then
-        [[ "$output1" == "$output2" ]]
-        passed=$?
-    elif [[ "$compare" == "ne" ]]; then
-        [[ "$output1" != "$output2" ]]
-        passed=$?
-    fi
-
-    if (( passed == 0 )); then
+    if [[ "$compare" == "eq" && "$output1" == "$output2" ]] ||
+       [[ "$compare" == "ne" && "$output1" != "$output2" ]]; then
         echo "✓ PASS: $test_name"
         ((TESTS_PASSED++))
     else
@@ -182,7 +174,7 @@ run_test_substring "-lSr" "--sort=size" "-lSr"
 run_test_substring "-i" "--inode" "-i"
 run_test_substring "-s" "--blocksize" "-s"
 run_test_substring "-n" "--numeric" "-n"
-run_test_substring "-o" "" "-o"
+run_test_substring "-o" "--long" "-o"
 run_test_substring "-Z" "--context" "-Z"
 run_test_substring "-g" "--no-user" "-g"
 run_test_substring "-H" "--links" "-H"
@@ -206,7 +198,7 @@ run_test_substring "-k" "--binary" "-k"
 run_test_substring "-b" "" "-b"
 run_test_substring "--block-size=K" "--binary" "--block-size=K"
 run_test_substring "-w" "--width" "-w"
-run_test_substring "-lh" "" "-h"
+run_test_substring "-lh" "--long" "-lh"
 run_test_substring "-lG" "--long" "-G"
 run_test_substring "-lg" "--no-user" "-lg"
 run_test_substring "-lo" "--long" "-lo"
@@ -235,20 +227,26 @@ run_test_substring "--time-style=iso" "--time-style=iso" "--time-style=iso"
 run_test_substring "--time-style=full-iso" "--time-style=full-iso" "--time-style=full-iso"
 run_test_substring "--indicator-style=slash" "--classify" "--indicator-style=slash"
 run_test_substring "--indicator-style=classify" "--classify" "--indicator-style=classify"
-run_test_substring "--indicator-style=none" "" "--indicator-style=none"
 run_test_substring "--hyperlink=auto" "--hyperlink" "--hyperlink"
 run_test_substring "--hyperlink" "--hyperlink" "--hyperlink (no arg)"
 run_test_substring "--hide=*.log" "--ignore-glob" "--hide=*.log"
 
-run_test_substring "-Q" "" "-Q"
-run_test_substring "--dired" "" "--dired"
-run_test_substring "--quoting-style=c" "" "--quoting-style=c"
-run_test_substring "-e" "" "-e (unsupported)"
-run_test_substring "-q" "" "-q (unsupported)"
-run_test_substring "-W" "" "-W (unsupported)"
-run_test_substring "--si" "" "--si (unsupported)"
-run_test_substring "--author" "" "--author (unsupported)"
-run_test_substring "-O" "" "-O (unsupported)"
+echo ""
+echo "=== Unsupported Flags Warning ==="
+
+run_test_substring_stderr "-b" "warning: unsupported option(s): -b" "-b shows warning"
+run_test_substring_stderr "-Q" "warning: unsupported option(s): -Q" "-Q shows warning"
+run_test_substring_stderr "--dired" "warning: unsupported option(s): --dired" "--dired shows warning"
+run_test_substring_stderr "--quoting-style=c" "warning: unsupported option(s): --quoting-style=c" "--quoting-style=c shows warning"
+run_test_substring_stderr "-e" "warning: unsupported option(s): -e" "-e shows warning"
+run_test_substring_stderr "-q" "warning: unsupported option(s): -q" "-q shows warning"
+run_test_substring_stderr "-W" "warning: unsupported option(s): -W" "-W shows warning"
+run_test_substring_stderr "--si" "warning: unsupported option(s): --si" "--si shows warning"
+run_test_substring_stderr "--author" "warning: unsupported option(s): --author" "--author shows warning"
+run_test_substring_stderr "-O" "warning: unsupported option(s): -O" "-O shows warning"
+run_test_substring_stderr "-P" "warning: unsupported option(s): -P" "-P shows warning"
+run_test_substring_stderr "--tab-size=4" "warning: unsupported option(s): --tab-size=4" "--tab-size shows warning"
+run_test_substring_stderr "--indicator-style=none" "warning: unsupported option(s): --indicator-style=none" "--indicator-style=none shows warning"
 
 run_test_substring "--show-all" "--all" "--show-all"
 run_test_substring "-v" "--version" "-v"
@@ -294,8 +292,6 @@ echo "=== Additional Flag Tests ==="
 echo
 
 run_test_substring "-T" "--time-style=full-iso" "-T full timestamp"
-run_test_substring "-P" "" "-P (unsupported)"
-run_test_substring "--tab-size=4" "" "--tab-size (unsupported)"
 run_test_substring "-lD" "--time-style" "-lD combines"
 run_test_substring "-lT" "--time-style=full-iso" "-lT combines"
 
@@ -325,8 +321,8 @@ echo "=== g/o/G Flag Behavior ==="
 echo
 
 run_test_substring "-g" "--no-user" "-g no user"
-run_test_substring "-o" "" "-o no group"
-run_test_substring "-G" "" "-G no group (eza default)"
+run_test_substring "-o" "--long" "-o no group"
+run_test_substring "-G" "--bytes" "-G no group (eza default)"
 run_test_substring "-gl" "--long" "-gl combines"
 run_test_substring "-og" "--no-user" "-og combines"
 run_test_substring "-glo" "--long" "-glo combines"

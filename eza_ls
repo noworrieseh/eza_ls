@@ -126,6 +126,7 @@ process_arg() {
             ;;
         # unsupported: escape non-printable
         -b)
+            unsupported_flags+=("$arg")
             ;;
         # BSD/GNU: block size
         --block-size=*)

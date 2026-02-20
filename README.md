@@ -37,7 +37,7 @@ eza_ls --eza -la /usr/local/bin
 | `-c` | `--time=changed` | Changed time |
 | `-C` | `--grid` | Grid view |
 | `-d` | `--treat-dirs-as-files` | List dirs as files |
-| `-D` | `--dereference` | Dereference |
+| `-D` | `--time-style=+FORMAT` | Custom date format |
 | `-f` | `--all --all --sort=none` | Disable sorting, show all files (like -a) |
 | `-F` | `--classify` | Type indicators |
 | `-g` | `--long --no-user --group` | Long format (without owner, shows group) |

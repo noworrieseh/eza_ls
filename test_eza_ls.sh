@@ -27,6 +27,25 @@ run_test() {
     fi
 }
 
+run_test_different() {
+    local flags1="$1"
+    local flags2="$2"
+    local test_name="$3"
+
+    output1=$($BIN $flags1 "$TEST_DIR" 2>&1 | head -20)
+    output2=$($BIN $flags2 "$TEST_DIR" 2>&1 | head -20)
+
+    if [[ "$output1" != "$output2" ]]; then
+        echo "✓ PASS: $test_name"
+        ((TESTS_PASSED++))
+    else
+        echo "✗ FAIL: $test_name (expected different, got same)"
+        echo "  Flags 1: '$flags1'"
+        echo "  Flags 2: '$flags2'"
+        ((TESTS_FAILED++))
+    fi
+}
+
 run_test_substring() {
     local flag="$1"
     local expected_arg="$2"
@@ -260,6 +279,121 @@ run_test "/nonexistent_directory_12345" "/nonexistent_directory_12345" "nonexist
 
 # Combined flags
 run_test_substring "-lh -Q" "--long" "-h disables --bytes even with -Q"
+
+echo
+echo "=== Argument-Consuming Flags ==="
+echo
+
+run_test_substring "-D %H:%M" "--time-style=+%H:%M" "-D with format"
+run_test_substring "-I '*.log'" "--ignore-glob" "-I with pattern"
+run_test_substring "-w 80" "--width=80" "-w with width"
+run_test_substring "--block-size=K" "--binary" "--block-size=K"
+run_test_substring "--block-size=B" "--bytes" "--block-size=B"
+
+echo
+echo "=== Additional Flag Tests ==="
+echo
+
+run_test_substring "-T" "--time-style=full-iso" "-T full timestamp"
+run_test_substring "-P" "" "-P (unsupported)"
+run_test_substring "--tab-size=4" "" "--tab-size (unsupported)"
+run_test_substring "-lD" "--time-style" "-lD combines"
+run_test_substring "-lT" "--time-style=full-iso" "-lT combines"
+
+run_test_substring "--dereference" "--dereference" "--dereference"
+run_test_substring "-lL" "--dereference" "-lL combines"
+
+run_test_substring "-laR" "--recurse" "-laR combines"
+run_test_substring "-lai" "--inode" "-lai combines"
+run_test_substring "-las" "--blocksize" "-las combines"
+
+run_test_substring "-lSev" "--sort=size" "-lSev (version sort)"
+run_test_substring "-lSevr" "--sort=size" "-lSevr (version sort with reverse)"
+
+echo
+echo "=== Long Options ==="
+echo
+
+run_test_substring "--sort=none" "--sort=none" "--sort=none"
+run_test_substring "--sort=width" "--sort=width" "--sort=width"
+run_test_substring "--time=birth" "--created" "--time=birth"
+run_test_substring "--time=use" "--accessed" "--time=use"
+run_test_substring "--time=status" "--changed" "--time=status"
+run_test_substring "--indicator-style=file-type" "--classify=never" "--indicator-style=file-type"
+
+echo
+echo "=== g/o/G Flag Behavior ==="
+echo
+
+run_test_substring "-g" "--no-user" "-g no user"
+run_test_substring "-o" "" "-o no group"
+run_test_substring "-G" "" "-G no group (eza default)"
+run_test_substring "-gl" "--long" "-gl combines"
+run_test_substring "-og" "--no-user" "-og combines"
+run_test_substring "-glo" "--long" "-glo combines"
+run_test_substring "-lG" "--long" "-lG with long"
+run_test_substring "-glG" "--long" "-glG combines"
+
+echo
+echo "=== Time Flag Combinations ==="
+echo
+
+run_test_substring "-lt" "--sort=modified" "-lt sort by time"
+run_test_substring "-lc" "--time=changed" "-lc ctime"
+run_test_substring "-lu" "--accessed" "-lu access time"
+run_test_substring "-lU" "--created" "-lU created time"
+run_test_substring "-lmu" "--accessed" "-lmu access time"
+run_test_substring "-lct" "--sort=modified" "-lct ctime sort"
+
+echo
+echo "=== f Flag Tests ==="
+echo
+
+run_test_substring "-f" "--all" "-f shows all"
+run_test_substring "-f" "--sort=none" "-f no sort"
+run_test_substring "-fa" "--all" "-fa combines"
+run_test_substring "-lf" "--sort=none" "-lf with long"
+
+echo
+echo "=== More Flag Ordering ==="
+echo
+
+run_test "-lSra" "-lS -r -a" "lSra = lS -r -a"
+run_test "-lSrar" "-lS -r -a -r" "lSrar double reverse"
+run_test "-lartS" "-l -a -r -t -S" "lartS complex"
+run_test "-lartSr" "-l -a -r -t -S -r" "lartSr with double reverse"
+run_test "-aSlr" "-a -S -l -r" "aSlr = a -S -l -r"
+run_test "-Sal" "-S -a -l" "Sal = Sal"
+run_test "-aSl" "-a -S -l" "aSl = aSl"
+
+echo
+echo "=== @ Extended Attributes ==="
+echo
+
+run_test_substring "-l@" "--extended" "-l@ with long"
+run_test_substring "-@" "--extended" "-@ alone"
+
+echo
+echo "=== Sort + Reverse Behavior ==="
+echo
+
+run_test_different "-S" "-Sr" "-S adds reverse, -Sr removes it"
+run_test_different "-t" "-tr" "-t adds reverse, -tr removes it"
+run_test_different "-lS" "-lSr" "-lS adds reverse, -lSr removes it"
+run_test_different "-lt" "-ltr" "-lt adds reverse, -ltr removes it"
+run_test "-lS -r" "-lSr" "-lS -r = -lSr"
+run_test "-lSr" "-lS -r" "-lSr = -lS -r"
+
+run_test_different "-X" "-Xr" "-X adds reverse, -Xr removes it"
+run_test_different "-lX" "-lXr" "-lX adds reverse, -lXr removes it"
+
+echo
+echo "=== --eza Variations ==="
+echo
+
+run_test_exact "--eza -la /tmp" "eza --all --all /tmp --long --bytes -g" "--eza with -la"
+run_test_exact "--eza -laS /tmp" "eza --all --all /tmp --sort=size --reverse --long --bytes -g" "--eza with -laS"
+run_test_exact "--eza -lart /tmp" "eza --all --all /tmp --sort=modified --long --bytes -g" "--eza with -lart"
 
 echo
 echo "=============="

@@ -9,12 +9,12 @@ Analysis of all options from `gls --help` (GNU ls).
 | **--author** | With -l, print the author of each file | ❌ Not supported | eza doesn't have author |
 | **-b, --escape** | Print C-style escapes for nongraphic characters | ❌ Not supported | eza uses unicode |
 | **--block-size=SIZE** | Scale sizes by SIZE | ⚠️ Partial | `--binary` for K, `--bytes` for B |
-| **-B, --ignore-backups** | Do not list entries ending with ~ | ❌ Not supported | eza uses --git-ignore |
+| **-B, --ignore-backups** | Do not list entries ending with ~ | ✅ Full | `--ignore-glob=*~` |
 | **-c** | With -lt: sort by ctime; with -l: show ctime | ✅ Full | `--time=changed` |
 | **-C** | List entries by columns | ✅ Full | `--grid` |
 | **--color[=WHEN]** | Color output WHEN (always/auto/never) | ✅ Full | `--colour=WHEN` |
 | **-d, --directory** | List directories themselves | ✅ Full | `--treat-dirs-as-files` |
-| **-D, --dired** | Output designed for Emacs dired | ❌ Not supported | eza-specific feature |
+| **-D, --dired** | Output designed for Emacs dired | ❌ Not supported | eza_ls uses BSD behavior: `--time-style=+FORMAT` |
 | **-f** | Same as -a -U (no sort) | ✅ Full | `--all --all --sort=none` |
 | **-F, --classify[=WHEN]** | Append indicator (*/=>@\|) | ✅ Full | `--classify` |
 | **--file-type** | Like -F but don't append * | ✅ Full | `--classify=auto` |
@@ -69,9 +69,9 @@ Analysis of all options from `gls --help` (GNU ls).
 
 | Status | Count |
 |--------|-------|
-| ✅ Full Support | ~38 |
+| ✅ Full Support | ~42 |
 | ⚠️ Partial Support | 3 (--block-size, -h, --format) |
-| ❌ Not Supported | ~20 |
+| ❌ Not Supported | ~16 |
 
 ## Partial Support Details
 
@@ -94,14 +94,8 @@ eza doesn't track file author.
 ### -b, --escape
 eza uses unicode characters instead of C-style escapes.
 
-### -B, --ignore-backups
-eza uses `--git-ignore` for ignoring files, not just ~ suffixes.
-
 ### -D, --dired
-Emacs-specific output format.
-
-### -g / -o
-eza always shows owner/group together, can't omit one.
+Emacs-specific output format. Maps to `--time-style=+FORMAT` (BSD behavior).
 
 ### --si
 eza only supports powers of 1024 (KiB, MiB, etc.), not 1000.

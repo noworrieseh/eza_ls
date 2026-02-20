@@ -12,6 +12,7 @@ print_only=0
 arg_index=0
 has_file_arg=0
 has_unsorted=0
+needs_long=0
 unsupported_flags=()
 
 scan_arg() {
@@ -130,7 +131,7 @@ process_arg() {
             process_arg "$arg" 1
             ;;
         -B)
-            eza_args+=("--bytes")
+            eza_args+=("--ignore-glob=*~")
             ;;
         -c)
             eza_args+=("--time=changed" "--time-style=long-iso")
@@ -160,12 +161,8 @@ process_arg() {
             fi
             ;;
         -G)
-            if [[ "$ls_mode" == "bsd" ]]; then
-                eza_args+=("--colour=auto")
-            fi
             ;;
         -G|--no-group)
-            unsupported_flags+=("$arg")
             ;;
         -h|--human-readable)
             ;;
@@ -186,7 +183,7 @@ process_arg() {
             eza_args+=("--binary")
             ;;
         -l)
-            eza_args+=("--long")
+            needs_long=1
             ;;
         -L|--dereference)
             eza_args+=("--dereference")
@@ -201,13 +198,13 @@ process_arg() {
             eza_args+=("--flags")
             ;;
         -g)
-            eza_args+=("--long")
+            needs_long=1
             eza_args+=("--no-user")
             eza_args+=("--group")
             has_group=1
             ;;
         -o)
-            eza_args+=("--long")
+            needs_long=1
             has_group=1
             ;;
         -P)
@@ -282,6 +279,13 @@ process_arg() {
             ;;
         --dired)
             unsupported_flags+=("$arg")
+            ;;
+        --file-type)
+            eza_args+=("--classify=never")
+            ;;
+        --full-time)
+            needs_long=1
+            eza_args+=("--time-style=full-iso")
             ;;
         --group-directories-first)
             eza_args+=("--group-directories-first")
@@ -406,6 +410,10 @@ fi
 
 if (( has_unsorted )); then
     eza_args+=("--sort=none")
+fi
+
+if (( needs_long )); then
+    eza_args+=("--long")
 fi
 
 if (( !has_file_arg )); then

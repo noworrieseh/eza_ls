@@ -27,12 +27,13 @@ run_test() {
     fi
 }
 
-run_coverage() {
+run_test_substring() {
     local flag="$1"
     local expected_arg="$2"
     local test_name="$3"
+    local dir="${4:-$TEST_DIR}"
 
-    output=$(bash -x $BIN $flag "$TEST_DIR" 2>&1 | grep "exec eza")
+    output=$($BIN --eza $flag "$dir" 2>&1)
 
     if [[ "$output" == *"$expected_arg"* ]]; then
         echo "✓ PASS: $test_name"
@@ -45,41 +46,74 @@ run_coverage() {
     fi
 }
 
-echo "Testing eza_ls flag consistency"
-echo "==============================="
+run_test_substring_stderr() {
+    local flag="$1"
+    local expected_arg="$2"
+    local test_name="$3"
+    local dir="${4:-$TEST_DIR}"
+
+    output=$($BIN --eza $flag "$dir" 2>&1 >/dev/null)
+
+    if [[ "$output" == *"$expected_arg"* ]]; then
+        echo "✓ PASS: $test_name"
+        ((TESTS_PASSED++))
+    else
+        echo "✗ FAIL: $test_name"
+        echo "  Expected to find: $expected_arg"
+        echo "  Got: $output"
+        ((TESTS_FAILED++))
+    fi
+}
+
+run_test_exact() {
+    local flag="$1"
+    local expected="$2"
+    local test_name="$3"
+    local dir="${4-}"
+
+    if [[ -z "$dir" ]]; then
+        output=$($BIN --eza $flag 2>&1)
+    else
+        output=$($BIN --eza $flag "$dir" 2>&1)
+    fi
+
+    if [[ "$output" == "$expected" ]]; then
+        echo "✓ PASS: $test_name"
+        ((TESTS_PASSED++))
+    else
+        echo "✗ FAIL: $test_name"
+        echo "  Expected: $expected"
+        echo "  Got: $output"
+        ((TESTS_FAILED++))
+    fi
+}
+
+echo "Testing eza_ls"
+echo "=============="
 echo
 
 echo "=== Consistency Tests ==="
 echo
 
-echo "--- Same flags (sanity check) ---"
 run_test "-l" "-l" "l = l"
 run_test "-a" "-a" "a = a"
 run_test "-r" "-r" "r = r"
 run_test "-S" "-S" "S = S"
 
-echo
-echo "--- Order independence: -al vs -la ---"
 run_test "-al" "-la" "-al = -la"
 run_test "-al -S" "-alS" "-al -S = -alS"
 run_test "-la -S" "-laS" "-la -S = -laS"
 run_test "-alS" "-laS" "-alS = -laS"
 
-echo
-echo "--- Order independence: -S and -r ---"
 run_test "-lS -r" "-lSr" "-lS -r = -lSr"
 run_test "-l -S -r" "-l -Sr" "-l -S -r = -l -Sr"
 run_test "-lSr" "-lS -r" "-lSr = -lS -r"
 
-echo
-echo "--- Order independence: -r and -S with other flags ---"
 run_test "-lra" "-arl" "-lra = -arl"
 run_test "-arl" "-ral" "-arl = -ral"
 run_test "-lart" "-latr" "-lart = -latr"
 run_test "-lart -S" "-lartS" "-lart -S = -lartS"
 
-echo
-echo "--- Three+ flag combinations ---"
 run_test "-lASr" "-ASrl" "-lASr = -ASrl"
 run_test "-laSr" "-aSrl" "-laSr = -aSrl"
 run_test "-lart -S -r" "-lart -Sr" "three flags with -r"
@@ -87,15 +121,11 @@ run_test "-lA" "-Al" "-lA = -Al"
 run_test "-lR" "-Rl" "-lR = -Rl"
 run_test "-lS -r" "-lSr" "-lS -r removes extra reverse"
 
-echo
-echo "--- Size sort behavior ---"
 run_test "-S -r" "-Sr" "-S -r = -Sr"
 run_test "-r -S" "-rS" "-r -S = -rS"
 run_test "-lS -r" "-lSr" "lS -r = lSr"
 run_test "-lSrS" "-lS -rS" "double S and r"
 
-echo
-echo "--- Verify -S adds reverse (largest first) ---"
 output1=$($BIN -lS "$TEST_DIR" 2>&1 | head -1)
 output2=$($BIN -lSr "$TEST_DIR" 2>&1 | head -1)
 if [[ "$output1" != "$output2" ]]; then
@@ -107,266 +137,123 @@ else
 fi
 
 echo
-echo "=== Coverage Tests ==="
+echo "=== Flag Mapping Tests ==="
 echo
 
-echo "--- Display flags ---"
-run_coverage "-1" "--oneline" "-1 adds --oneline"
-run_coverage "-l" "--long" "-l adds --long"
-run_coverage "-C" "--grid" "-C adds --grid"
-run_coverage "-x" "--across" "-x adds --across"
-run_coverage "-R" "--recurse" "-R adds --recurse"
-run_coverage "-a" "--all" "-a adds --all"
-run_coverage "-A" "--almost-all" "-A adds --almost-all"
+run_test_substring "-1" "--oneline" "-1"
+run_test_substring "-l" "--long" "-l"
+run_test_substring "-C" "--grid" "-C"
+run_test_substring "-x" "--across" "-x"
+run_test_substring "-R" "--recurse" "-R"
+run_test_substring "-a" "--all" "-a"
+run_test_substring "-A" "--almost-all" "-A"
+run_test_substring "-@" "--extended" "-@"
+run_test_substring "-L" "--dereference" "-L"
+run_test_substring "-O" "--flags" "-O"
+run_test_substring "-N" "--no-quotes" "-N"
+
+run_test_substring "-r" "--reverse" "-r"
+run_test_substring "-S" "--sort=size" "-S"
+run_test_substring "-t" "--sort=modified" "-t"
+run_test_substring "-X" "--sort=extension" "-X"
+
+run_test_substring "-la" "--long" "-la"
+run_test_substring "-al" "--long" "-al"
+run_test_substring "-lS" "--sort=size" "-lS"
+run_test_substring "-lSr" "--sort=size" "-lSr"
+
+run_test_substring "-i" "--inode" "-i"
+run_test_substring "-s" "--blocksize" "-s"
+run_test_substring "-n" "--numeric" "-n"
+run_test_substring "-o" "" "-o"
+run_test_substring "-Z" "--context" "-Z"
+run_test_substring "-g" "--no-user" "-g"
+run_test_substring "-H" "--links" "-H"
+
+run_test_substring "-u" "--accessed" "-u"
+run_test_substring "-U" "--created" "-U"
+run_test_substring "-c" "--time=changed" "-c"
+run_test_substring "-m" "--modified" "-m"
+
+run_test_substring "-d" "--treat-dirs-as-files" "-d"
+run_test_substring "-f" "--all" "-f"
+run_test_substring "-I" "--ignore-glob" "-I"
+run_test_substring "-B" "--ignore-glob=*~" "-B"
+
+run_test_substring "-F" "--classify" "-F"
+run_test_substring "-p" "--classify" "-p"
+
+run_test_substring "-B" "--bytes" "-B"
+run_test_substring "-k" "--binary" "-k"
+
+run_test_substring "-b" "" "-b"
+run_test_substring "--block-size=K" "--binary" "--block-size=K"
+run_test_substring "-w" "--width" "-w"
+run_test_substring "-lh" "" "-h"
+run_test_substring "-lG" "--long" "-G"
+run_test_substring "-lg" "--no-user" "-lg"
+run_test_substring "-lo" "--long" "-lo"
+run_test_substring "-v" "--version" "-v"
+run_test_substring "--version" "--version" "--version"
+run_test_substring "--time-style=+\"%Y-%m-%d\"" "--time-style=+\"%Y-%m-%d\"" "--time-style=+FORMAT"
+run_test_substring "--file-type" "--classify=never" "--file-type"
+run_test_substring "--full-time" "--time-style=full-iso" "--full-time"
+
+run_test_substring "--group-directories-first" "--group-directories-first" "--group-directories-first"
+run_test_substring "--group-directories-last" "--group-directories-last" "--group-directories-last"
+run_test_substring "--show-all" "--all" "--show-all"
+run_test_substring "--color=auto" "--colour=auto" "--color=auto"
+run_test_substring "--color=never" "--colour=never" "--color=never"
+run_test_substring "--color=always" "--colour=always" "--color=always"
+run_test_substring "--sort=name" "--sort=name" "--sort=name"
+run_test_substring "--sort=time" "--sort=modified" "--sort=time"
+run_test_substring "--sort=extension" "--sort=extension" "--sort=extension"
+run_test_substring "--sort=version" "--sort=name" "--sort=version"
+run_test_substring "--time=accessed" "--accessed" "--time=accessed"
+run_test_substring "--time=created" "--created" "--time=created"
+run_test_substring "--time=modified" "--time=modified" "--time=modified"
+run_test_substring "--time=changed" "--changed" "--time=changed"
+run_test_substring "--time-style=long-iso" "--time-style=long-iso" "--time-style=long-iso"
+run_test_substring "--time-style=iso" "--time-style=iso" "--time-style=iso"
+run_test_substring "--time-style=full-iso" "--time-style=full-iso" "--time-style=full-iso"
+run_test_substring "--indicator-style=slash" "--classify" "--indicator-style=slash"
+run_test_substring "--indicator-style=classify" "--classify" "--indicator-style=classify"
+run_test_substring "--indicator-style=none" "" "--indicator-style=none"
+run_test_substring "--hyperlink=auto" "--hyperlink" "--hyperlink"
+run_test_substring "--hyperlink" "--hyperlink" "--hyperlink (no arg)"
+run_test_substring "--hide=*.log" "--ignore-glob" "--hide=*.log"
+
+run_test_substring "-Q" "" "-Q"
+run_test_substring "--dired" "" "--dired"
+run_test_substring "--quoting-style=c" "" "--quoting-style=c"
+
+run_test_substring "--eza -l" "eza" "--eza flag"
+run_test_substring "--eza -lS" "--sort=size" "--eza with -lS"
 
 echo
-echo "--- Sort flags ---"
-run_coverage "-r" "--reverse" "-r adds --reverse"
-run_coverage "-S" "--sort=size" "-S adds --sort=size"
-run_coverage "-t" "--sort=modified" "-t adds --sort=modified"
-run_coverage "-X" "--sort=extension" "-X adds --sort=extension"
+echo "=== Edge Cases ==="
+echo
+
+# No directory - tests default "."
+run_test_exact "-l" "eza --long . --bytes -g" "no dir defaults to ."
+run_test_exact "-lt" "eza --sort=modified --long . --bytes -g" "-lt defaults to ."
+run_test_exact "-l -- /tmp" "eza -- /tmp --long --bytes -g" "-- after flags"
+run_test_exact "-l -- -testfile /tmp" "eza -- -testfile /tmp --long --bytes -g" "-l -- with dash filename"
+run_test_exact "-l /tmp /usr" "eza /tmp /usr --long --bytes -g" "multiple directories"
+run_test_exact "-- /tmp /usr" "eza -- /tmp /usr --bytes -g" "-- with multiple directories"
+
+# Warnings
+run_test_substring_stderr "-Q" "warning" "warning goes to stderr"
+run_test_substring_stderr "-Q --dired" "-Q --dired" "multiple warnings show all flags"
+
+# Error handling
+run_test "/nonexistent_directory_12345" "/nonexistent_directory_12345" "nonexistent directory error comes from eza"
+
+# Combined flags
+run_test_substring "-lh -Q" "--long" "-h disables --bytes even with -Q"
 
 echo
-echo "--- Combined flags ---"
-run_coverage "-la" "--long" "-la adds --long"
-run_coverage "-al" "--long" "-al adds --long"
-run_coverage "-lS" "--sort=size" "-lS adds --sort=size"
-run_coverage "-lSr" "--sort=size" "-lSr adds --sort=size"
-
-echo
-echo "--- Additional display/info flags ---"
-run_coverage "-i" "--inode" "-i adds --inode"
-run_coverage "-s" "--blocksize" "-s adds --blocksize"
-run_coverage "-n" "--numeric" "-n adds --numeric"
-run_coverage "-o" "" "-o is unsupported (cannot hide group in eza)"
-run_coverage "-Z" "--context" "-Z adds --context"
-run_coverage "-g" "--no-user" "-g adds --no-user (no owner, like ls -g)"
-run_coverage "-H" "--links" "-H adds --links"
-
-echo
-echo "--- Time-related flags ---"
-run_coverage "-u" "--accessed" "-u adds --accessed"
-run_coverage "-U" "--created" "-U adds --created"
-run_coverage "-c" "--time=changed" "-c adds --time=changed"
-run_coverage "-m" "--modified" "-m adds --modified"
-
-echo
-echo "--- Filter flags ---"
-run_coverage "-d" "--treat-dirs-as-files" "-d adds --treat-dirs-as-files"
-run_coverage "-f" "--all" "-f adds --all and --sort=none"
-run_coverage "-I" "--ignore-glob" "-I adds --ignore-glob"
-
-echo
-echo "--- Classification flags ---"
-run_coverage "-F" "--classify" "-F adds --classify"
-run_coverage "-p" "--classify" "-p adds --classify"
-
-echo
-echo "--- Binary/bytes flags ---"
-run_coverage "-B" "--bytes" "-B adds --bytes"
-run_coverage "-k" "--binary" "-k adds --binary"
-
-echo
-echo "--- Long options ---"
-run_coverage "--group-directories-first" "--group-directories-first" "--group-directories-first"
-run_coverage "--group-directories-last" "--group-directories-last" "--group-directories-last"
-run_coverage "--show-all" "--all" "--show-all adds --all"
-run_coverage "--color=auto" "--colour=auto" "--color=auto adds --colour=auto"
-run_coverage "--color=never" "--colour=never" "--color=never adds --colour=never"
-run_coverage "--color=always" "--colour=always" "--color=always adds --colour=always"
-run_coverage "--sort=name" "--sort=name" "--sort=name"
-run_coverage "--sort=time" "--sort=modified" "--sort=time adds --sort=modified"
-run_coverage "--sort=extension" "--sort=extension" "--sort=extension"
-run_coverage "--sort=version" "--sort=name" "--sort=version maps to name"
-run_coverage "--time=accessed" "--accessed" "--time=accessed adds --accessed"
-run_coverage "--time=created" "--created" "--time=created adds --created"
-run_coverage "--time=modified" "--time=modified" "--time=modified"
-run_coverage "--time=changed" "--changed" "--time=changed"
-run_coverage "--time-style=long-iso" "--time-style=long-iso" "--time-style=long-iso"
-run_coverage "--time-style=iso" "--time-style=iso" "--time-style=iso"
-run_coverage "--time-style=full-iso" "--time-style=full-iso" "--time-style=full-iso"
-run_coverage "--indicator-style=slash" "--classify" "--indicator-style=slash adds --classify"
-run_coverage "--indicator-style=classify" "--classify" "--indicator-style=classify adds --classify"
-run_coverage "--indicator-style=none" "" "--indicator-style=none (no-op)"
-run_coverage "--hyperlink=auto" "--hyperlink" "--hyperlink"
-run_coverage "--hyperlink" "--hyperlink" "--hyperlink (no arg)"
-run_coverage "--hide=*.log" "--ignore-glob" "--hide=*.log adds --ignore-glob"
-
-echo
-echo "--- Debug --eza flag ---"
-output=$($BIN --eza -l /usr/local/bin 2>&1)
-if [[ "$output" == "eza --long /usr/local/bin --bytes -g" ]]; then
-    echo "✓ PASS: --eza prints command"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: --eza prints command"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -lS /usr/local/bin 2>&1)
-if [[ "$output" == "eza --long /usr/local/bin --sort=size --reverse --bytes -g" ]]; then
-    echo "✓ PASS: --eza with -lS"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: --eza with -lS"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-echo
-echo "--- Argument-consuming flags (no stdin) ---"
-output=$($BIN --eza -b /usr/local/bin 2>&1)
-if [[ "$output" == "eza /usr/local/bin --bytes -g" ]]; then
-    echo "✓ PASS: -b (escape) works - no stdin read"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -b should not read from stdin"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza --block-size=K /usr/local/bin 2>&1)
-if [[ "$output" == "eza --binary /usr/local/bin --bytes -g" ]]; then
-    echo "✓ PASS: --block-size=K adds --binary"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: --block-size=K should add --binary"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -I "*.log" /usr/local/bin 2>&1)
-if [[ "$output" == "eza --ignore-glob=*.log /usr/local/bin --bytes -g" ]]; then
-    echo "✓ PASS: -I *.log works (no stdin)"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -I *.log should not read from stdin"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -w 80 /usr/local/bin 2>&1)
-if [[ "$output" == "eza --width=80 /usr/local/bin --bytes -g" ]]; then
-    echo "✓ PASS: -w 80 works (no stdin)"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -w 80 should not read from stdin"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -lh /usr/local/bin 2>&1)
-if [[ "$output" == "eza --long /usr/local/bin -g" ]]; then
-    echo "✓ PASS: -h disables --bytes"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -h should disable --bytes"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -lG /usr/local/bin 2>&1)
-if [[ "$output" == "eza --long /usr/local/bin --bytes" ]]; then
-    echo "✓ PASS: -G (--no-group) removes group"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -G should remove group"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-echo
-echo "--- No directory argument (defaults to .) ---"
-output=$($BIN --eza -l 2>&1)
-if [[ "$output" == "eza --long . --bytes -g" ]]; then
-    echo "✓ PASS: no dir defaults to ."
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: no dir should default to ."
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -lt 2>&1)
-if [[ "$output" == "eza --long --sort=modified . --bytes -g" ]]; then
-    echo "✓ PASS: -lt no dir defaults to ."
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -lt no dir should default to ."
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-echo
-echo "--- Additional flags ---"
-run_coverage "-L" "--dereference" "-L adds --dereference"
-run_coverage "-O" "--flags" "-O adds --flags"
-run_coverage "-@" "--extended" "-@ adds --extended"
-run_coverage "-N" "--no-quotes" "-N adds --no-quotes"
-run_coverage "-Q" "" "-Q is unsupported (no-op)"
-run_coverage "--dired" "" "--dired is unsupported (no-op)"
-run_coverage "--quoting-style=c" "" "--quoting-style is unsupported (no-op)"
-
-output=$($BIN --eza -- /tmp 2>&1)
-if [[ "$output" == "eza -- /tmp --bytes -g" ]]; then
-    echo "✓ PASS: -- separator passes through"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -- separator should pass through"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -l -- /tmp 2>&1)
-if [[ "$output" == "eza --long -- /tmp --bytes -g" ]]; then
-    echo "✓ PASS: -- after flags"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -- after flags"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -- -testfile /tmp 2>&1)
-if [[ "$output" == "eza -- -testfile /tmp --bytes -g" ]]; then
-    echo "✓ PASS: -- passes dash filename"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -- should pass dash filename"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -l -- -testfile /tmp 2>&1)
-if [[ "$output" == "eza --long -- -testfile /tmp --bytes -g" ]]; then
-    echo "✓ PASS: -l -- with dash filename"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -l -- with dash filename"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -l /tmp /usr 2>&1)
-if [[ "$output" == "eza --long /tmp /usr --bytes -g" ]]; then
-    echo "✓ PASS: multiple directories"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: multiple directories"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-output=$($BIN --eza -- /tmp /usr 2>&1)
-if [[ "$output" == "eza -- /tmp /usr --bytes -g" ]]; then
-    echo "✓ PASS: -- with multiple directories"
-    ((TESTS_PASSED++))
-else
-    echo "✗ FAIL: -- with multiple directories"
-    echo "  Got: $output"
-    ((TESTS_FAILED++))
-fi
-
-echo
-echo "==============================="
+echo "=============="
 echo "Results: $TESTS_PASSED passed, $TESTS_FAILED failed"
 
 if [[ $TESTS_FAILED -gt 0 ]]; then

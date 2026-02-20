@@ -6,11 +6,11 @@ Analysis of all options from `man ls` on macOS.
 |-----------|-------------|-----------------|-------|
 | **-@** | Display extended attribute keys and sizes in long output | ⚠️ Partial | `--extended` only works with `-l` |
 | **-A** | Include entries starting with dot (except . and ..) | ✅ Full | `--almost-all` |
-| **-B** | Print non-printable as \_xxx (octal) | ❌ Not supported | macOS-specific |
+| **-B** | Ignore entries ending with ~ | ✅ Full | `--ignore-glob=*~` |
 | **-C** | Force multi-column output | ✅ Full | `--grid` |
 | **-D format** | Custom date format for long output | ✅ Full | `--time-style=+FORMAT` |
 | **-F** | Display type indicator (*/=@\|) after each file | ✅ Full | `--classify` |
-| **-G** | Enable colorized output | ❌ Not supported | macOS-specific |
+| **-G** | Enable colorized output | ✅ Full | `--colour=auto` |
 | **-H** | Follow symlinks on command line | ✅ Full | `--dereference` |
 | **-I** | Prevent -A for super-user | ❌ Not supported | macOS-specific |
 | **-L** | Follow all symbolic links | ✅ Full | `--dereference` |
@@ -23,7 +23,7 @@ Analysis of all options from `man ls` on macOS.
 | **-W** | Display whiteouts | ❌ Not supported | macOS-specific |
 | **-X** | Don't descend into different device directories | ❌ Not supported | eza doesn't support this |
 | **-a** | Include entries starting with dot | ✅ Full | `--all --all` |
-| **-b** | Escape non-printable as C codes | ✅ Full | `--escape` (no-op, eza uses unicode) |
+| **-b** | Escape non-printable as C codes | ⚠️ Warning | eza uses unicode, shows warning |
 | **-c** | Use time when status changed | ✅ Full | `--time=changed` |
 | **--color=when** | Output colored escape sequences (always/auto/never) | ✅ Full | `--colour=always/auto/never` |
 | **-d** | List directories as plain files | ✅ Full | `--treat-dirs-as-files` |

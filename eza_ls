@@ -288,7 +288,7 @@ process_arg() {
             eza_args+=("--time-style=full-iso")
             ;;
         # tabsize
-        --tab-size=*)
+        --tab-size=*|--tabsize=*)
             unsupported_flags+=("$arg")
             ;;
         # access_time_sort
@@ -299,8 +299,8 @@ process_arg() {
         -U)
             eza_args+=("--created")
             ;;
-        # -v: BSD unedited / GNU version sort (unsupported)
-        # --version: print version info
+        # unedited
+        # version_sort
         -v)
             unsupported_flags+=("$arg")
             ;;
@@ -342,11 +342,11 @@ process_arg() {
                 always) eza_args+=("--colour=always") ;;
                 auto) eza_args+=("--colour=auto") ;;
                 never) eza_args+=("--colour=never") ;;
-                *) echo "warning: --color value must be auto, always, or never" >&2 ;;
+                *) unsupported_flags+=("$arg") ;;
             esac
             ;;
         # dereference
-        --dereference)
+        -L|--dereference|--dereference-command-line)
             eza_args+=("--dereference")
             ;;
         # dired
@@ -375,7 +375,7 @@ process_arg() {
                 hyperlink="${arg#*=}"
                 case "$hyperlink" in
                     always|auto|never) eza_args+=("--hyperlink") ;;
-                    *) echo "warning: --hyperlink value must be auto, always, or never" >&2 ;;
+                    *) unsupported_flags+=("$arg") ;;
                 esac
             else
                 eza_args+=("--hyperlink")
@@ -391,7 +391,7 @@ process_arg() {
                 file-type) eza_args+=("--classify=never") ;;
                 classify) eza_args+=("--classify=always") ;;
                 slash) eza_args+=("--classify=auto") ;;
-                *) echo "warning: --indicator-style value must be none, file-type, classify, or slash" >&2 ;;
+                *) unsupported_flags+=("$arg") ;;
             esac
             ;;
         # quoting

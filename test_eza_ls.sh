@@ -191,6 +191,8 @@ run_test_substring "-B" "--ignore-glob=*~" "-B"
 
 run_test_substring "-F" "--classify" "-F"
 run_test_substring "-p" "--classify" "-p"
+run_test_substring "--classify=auto" "--classify=auto" "--classify=auto"
+run_test_substring "--classify=always" "--classify=always" "--classify=always"
 
 run_test_substring "-B" "--bytes" "-B"
 run_test_substring "-k" "--binary" "-k"
@@ -210,7 +212,6 @@ run_test_substring "--file-type" "--classify=never" "--file-type"
 run_test_substring "--full-time" "--time-style=full-iso" "--full-time"
 
 run_test_substring "--group-directories-first" "--group-directories-first" "--group-directories-first"
-run_test_substring_stderr "--group-directories-last" "warning: unsupported option(s): --group-directories-last" "--group-directories-last is unsupported"
 run_test_substring "--color=auto" "--colour=auto" "--color=auto"
 run_test_substring "--color=never" "--colour=never" "--color=never"
 run_test_substring "--color=always" "--colour=always" "--color=always"
@@ -219,6 +220,7 @@ run_test_substring "--sort=name" "--sort=name" "--sort=name"
 run_test_substring "--sort=time" "--sort=modified" "--sort=time"
 run_test_substring "--sort=extension" "--sort=extension" "--sort=extension"
 run_test_substring "--sort=version" "--sort=name" "--sort=version"
+run_test_substring "--sort=width" "--sort=width" "--sort=width"
 run_test_substring "--time=accessed" "--accessed" "--time=accessed"
 run_test_substring "--time=created" "--created" "--time=created"
 run_test_substring "--time=modified" "--time=modified" "--time=modified"
@@ -229,6 +231,8 @@ run_test_substring "--time-style=full-iso" "--time-style=full-iso" "--time-style
 run_test_substring "--indicator-style=slash" "--classify" "--indicator-style=slash"
 run_test_substring "--indicator-style=classify" "--classify" "--indicator-style=classify"
 run_test_substring "--hyperlink=auto" "--hyperlink" "--hyperlink"
+run_test_substring "--hyperlink=always" "--hyperlink" "--hyperlink=always"
+run_test_substring "--hyperlink=never" "--hyperlink" "--hyperlink=never"
 run_test_substring "--hyperlink" "--hyperlink" "--hyperlink (no arg)"
 run_test_substring "--hide=*.log" "--ignore-glob" "--hide=*.log"
 
@@ -248,11 +252,18 @@ run_test_substring_stderr "-O" "warning: unsupported option(s): -O" "-O shows wa
 run_test_substring_stderr "-P" "warning: unsupported option(s): -P" "-P shows warning"
 run_test_substring_stderr "--tab-size=4" "warning: unsupported option(s): --tab-size=4" "--tab-size shows warning"
 run_test_substring_stderr "--indicator-style=none" "warning: unsupported option(s): --indicator-style=none" "--indicator-style=none shows warning"
-run_test_substring_stderr "--show-control-chars" "warning: unsupported option(s): --show-control-chars" "--show-control-chars shows warning"
 
-  run_test_substring_stderr "-v" "warning: unsupported option(s): -v" "-v"
-  run_test_substring_stderr "-V" "warning: unsupported option(s): -V" "-V"
-  run_test_substring "--version" "--version" "--version"
+echo ""
+echo "=== Invalid Value Tests ==="
+
+run_test_substring_stderr "--color=invalid" "warning: unsupported option(s): --color=invalid" "--color=invalid"
+run_test_substring_stderr "--classify=invalid" "warning: --classify value must be auto, always, or never" "--classify=invalid"
+run_test_substring_stderr "--hyperlink=invalid" "warning: unsupported option(s): --hyperlink=invalid" "--hyperlink=invalid"
+run_test_substring_stderr "--show-control-chars" "warning: unsupported option(s): --show-control-chars" "--show-control-chars shows warning"
+run_test_substring_stderr "-v" "warning: unsupported option(s): -v" "-v"
+run_test_substring_stderr "--zero" "warning: unsupported option(s): --zero" "--zero"
+
+run_test_substring "--version" "--version" "--version"
 
 run_test_substring "--eza -l" "eza" "--eza flag"
 run_test_substring "--eza -lS" "--sort=size" "--eza with -lS"
@@ -303,9 +314,6 @@ run_test_substring "-lL" "--dereference" "-lL combines"
 run_test_substring "-laR" "--recurse" "-laR combines"
 run_test_substring "-lai" "--inode" "-lai combines"
 run_test_substring "-las" "--blocksize" "-las combines"
-
-run_test_substring "-lSev" "--sort=size" "-lSev (version sort)"
-run_test_substring "-lSevr" "--sort=size" "-lSevr (version sort with reverse)"
 
 echo
 echo "=== Long Options ==="

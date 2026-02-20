@@ -108,9 +108,8 @@ process_arg() {
             ;;
         # blocksize
         --block-size=*)
-            ((arg_index++))
-            next_arg="${args[$arg_index]}"
-            case "$next_arg" in
+            size="${arg#*=}"
+            case "$size" in
                 K) eza_args+=("--binary") ;;
                 B) eza_args+=("--bytes") ;;
                 *) unsupported_flags+=("$arg") ;;
@@ -544,7 +543,7 @@ Flags:
   -T                    Full timestamp
   -u                    Use access time
   -U                    Use created time
-  -w, --width COLS      Set output width
+  -w, --width=COLS      Set output width
   -x                    Sort across columns
   -X, --sort=extension  Sort by extension
   -Z, --context         Security context

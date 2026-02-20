@@ -240,7 +240,7 @@
     {
       "name": "kibibytes",
       "short_flag": "-k",
-      "long_flag": "--kibibytes",
+      "long_flag": "--block-size",
       "bsd_desc": "This has the same effect as setting environment variable BLOCKSIZE to 1024, except that it also nullifies any -h options to its left.",
       "gnu_desc": "default to 1024-byte blocks for file system usage; used only with -s and per directory totals",
       "eza_flag": "--binary",
@@ -752,6 +752,30 @@
       "implemented": "unsupported",
       "values": null,
       "help": "Version sort"
+    },
+    {
+      "name": "comma_list",
+      "short_flag": "-m",
+      "long_flag": null,
+      "bsd_desc": "Stream output format; list files across the page, separated by commas",
+      "gnu_desc": "fill width with a comma separated list of entries",
+      "eza_flag": null,
+      "supported": "all",
+      "implemented": "unsupported",
+      "values": null,
+      "help": "Comma-separated list"
+    },
+    {
+      "name": "dired",
+      "short_flag": null,
+      "long_flag": "--dired",
+      "bsd_desc": null,
+      "gnu_desc": "generate output designed for Emacs' dired mode",
+      "eza_flag": null,
+      "supported": "unsupported",
+      "implemented": "unsupported",
+      "values": null,
+      "help": "Emacs dired mode"
     }
   ]
 }

@@ -182,7 +182,7 @@ run_test_substring "-H" "--links" "-H"
 run_test_substring "-u" "--accessed" "-u"
 run_test_substring "-U" "--created" "-U"
 run_test_substring "-c" "--time=changed" "-c"
-run_test_substring "-m" "--modified" "-m"
+run_test_substring_stderr "-m" "warning: unsupported option(s): -m" "-m"
 
 run_test_substring "-d" "--treat-dirs-as-files" "-d"
 run_test_substring "-f" "--all" "-f"

@@ -228,7 +228,7 @@ process_arg() {
             ;;
         # comma_list
         -m)
-            eza_args+=("--modified")
+            unsupported_flags+=("$arg")
             ;;
         # numericid
         -n|--numeric-uid-gid)
@@ -554,14 +554,13 @@ Flags:
   -F, --classify        Type indicators
   -g                    Long without owner
   -G, --no-group        No group column
-  -h, --human-readable Human readable sizes
+  -h, --human-readable  Human readable sizes
   -H                    Show hard links
   -i                    Show inode
   -I, --ignore PATTERN  Ignore pattern
   -k                    1024-byte blocks
   -l                    Long format
   -L, --dereference     Follow symlinks
-  -m                    Modified time
   -n                    Numeric UID/GID
   -O                    File flags
   -o                    Long without group
@@ -604,21 +603,22 @@ Unsupported options in eza_ls:
 
 BSD-specific (macOS):
   -e         Print ACL (use -Z for security context)
+  -m         Comma-separated stream
   -O         File flags
   -P         Don't follow symlinks
   -v         Force unedited printing
   -W         Display whiteouts
 
 GNU-specific:
-  --author   Print author
-  -b, --escape              Escape non-printable (eza uses unicode)
-  -Q, --quote-name         Quote names
+  --author                Print author
+  -b, --escape            Escape non-printable (eza uses unicode)
+  -Q, --quote-name        Quote names
   --quoting-style=WORD    Quoting style
-  --si                     SI units (powers of 1000)
+  --si                    SI units (powers of 1000)
   -T, --tabsize=COLS      Tab size
-  -U                       Do not sort (eza always sorts)
-  -v                       Version sort (unsupported)
-  --zero                   End lines with NUL
+  -U                      Do not sort (eza always sorts)
+  -v                      Version sort (unsupported)
+  --zero                  End lines with NUL
 
 Eza repository: https://github.com/eza-community/eza
 # UNSUPPORTED_END
